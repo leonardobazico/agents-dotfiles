@@ -28,7 +28,7 @@ Use this skill when you need independent feedback from multiple AI CLIs on any o
 
 ## Prompt Construction
 
-Read the review prompt template from `templates/ask-agents-for-feedback.template.prompt.md` relative to the repository root. Replace the placeholders with the inputs above:
+Read the review prompt template from `templates/ask-agents-for-feedback.template.prompt.md` (co-located at `skills/ask-agents-for-feedback/templates/ask-agents-for-feedback.template.prompt.md`). Replace the placeholders with the inputs above:
 
 - `<ARTIFACT_TYPE>` → value of `artifactType`
 - `<PATH>` → value of `artifactPath`
@@ -113,7 +113,7 @@ Then ask:
 
 ## Consolidation Handoff
 
-If the user requests consolidation, read the consolidation prompt from `templates/consolidate-feedbacks.template.prompt.md` and follow its instructions, passing all collected feedback as input.
+If the user requests consolidation, read the consolidation prompt from `templates/consolidate-feedbacks.template.prompt.md` (co-located at `skills/ask-agents-for-feedback/templates/consolidate-feedbacks.template.prompt.md`) and follow its instructions, passing all collected feedback as input.
 
 ## Guardrails
 
