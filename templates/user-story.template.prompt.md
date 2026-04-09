@@ -10,6 +10,11 @@ USER STORY TEMLATE
 
 short description of the goal of the user story business oriented, not technical with what is the problem we are trying to solve, and why it is important
 
+## User Story
+As a [type of user]
+I want [some goal]
+so that [some reason]
+
 ## Technical Notes
 
 - bullet points with high level technical notes on how to approach the implementation.,
