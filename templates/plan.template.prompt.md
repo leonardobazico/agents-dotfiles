@@ -13,5 +13,6 @@ Requirements:
   - write code to make test pass
   - refactor test or code if necessary
 - include small improvements in the touching areas
-- consider that the implementation will be done by a different person, so the plan should be clear and detailed enough for someone else to follow
-- each step should be small and atomic commitable, so the implementation can be done in small increments and reviewed easily
+- each commit should be fully compilable and have all tests suite passing
+- consider that the implementation will be done by someone else, the plan should be concise and detailed for them to follow without ambiguity
+- the implementation should be done in small increments and reviewed by human in the loop
