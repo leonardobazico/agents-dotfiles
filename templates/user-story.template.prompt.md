@@ -17,17 +17,18 @@ so that [some reason]
 
 ## Technical Notes
 
-- bullet points with high level technical notes on how to approach the implementation.,
+- short list of bullet points with high level technical notes on how to approach the implementation.
 
 ## Open Questions
 
-- bullet points with open questions that need to be answered before or during the implementation
+- bullet points with open questions if any.
 
 ## Acceptance Criteria
 
 Gherkin format acceptance criteria with Given/When/Then steps. Each criterion should be independent and testable.
 Scenario: Title of the scenario being described
 Given some initial context or state of the system
+And some other state if needed
 When some action is taken or some event occurs
 And some other action if needed
 Then some expected outcome should happen
