@@ -74,7 +74,7 @@ Copilot — takes prompt as a direct argument to `--prompt`, does NOT read stdin
 PROMPT_FILE=$(mktemp) && cat <<'EOF' > "$PROMPT_FILE"
 <PROMPT>
 EOF
-copilot --prompt "$(cat "$PROMPT_FILE")" --available-tools="grep,glob,view" --add-dir /path/to/repo --quiet && rm -f "$PROMPT_FILE"
+copilot --prompt "$(cat "$PROMPT_FILE")" --available-tools="grep,glob,view" --add-dir /path/to/repo --silent && rm -f "$PROMPT_FILE"
 ```
 
 Replace `<PROMPT>` with the fully constructed prompt and `/path/to/repo` with the actual repository root.
