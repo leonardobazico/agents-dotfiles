@@ -5,7 +5,7 @@ description: Turn a rough feature idea into a written user story through one-que
 
 # write-user-story
 
-Create a business-oriented user story from a rough idea or feature list. Clarify requirements one question at a time, write the story to `docs/user-story/`, run a constrained review subagent, resolve any needed follow-up with the human, and stop after asking the human to review the written file.
+Create a business-oriented user story from a rough idea or feature list. Refine requirements one question at a time, write the story to `docs/user-story/`, run a constrained review step, resolve any needed follow-up with the human, and stop after asking the human to review the written file.
 
 ## Defaults
 
@@ -13,7 +13,15 @@ Create a business-oriented user story from a rough idea or feature list. Clarify
 - Draft prompt: `templates/user-story.template.prompt.md`
 - Review prompt: `templates/review-user-story.template.prompt.md`
 
-These are defaults, not hard requirements. If the consuming repository explicitly provides a different output path or prompt location, follow that override instead.
+These paths are co-located with the skill and must be resolved relative to `SKILL.md`, not the current working directory or the repository root.
+
+Override precedence:
+
+1. invocation-time override
+2. repo-provided default
+3. skill built-in default
+
+This precedence applies to the output directory, filename convention, draft prompt path, and review prompt path.
 
 ## Hard Gates
 
@@ -42,7 +50,11 @@ The normal input to this skill is a rough idea or feature list. Ask one question
 - key rules or constraints
 - testable outcomes for acceptance criteria
 
-If the user's initial prompt already contains actor, outcome, business value, scope boundaries, and testable outcomes clearly enough to draft without guessing, you may skip the refinement loop. Treat that as the exception, not the default use case.
+Maintain a short running summary of resolved refinements during the workflow. Keep it compact and focused on the decisions that materially affect the drafted story and review step.
+
+Ask the smallest next refinement question that materially changes scope, business value, or acceptance criteria.
+
+If the user's initial prompt already contains actor, outcome, business value, scope boundaries, and testable outcomes clearly enough to draft without guessing, you may skip the refinement loop. Treat that as the exception, not the default use case. If you skip it, explicitly tell the human that refinement is being skipped because the provided input is already complete enough to draft.
 
 When ambiguity remains, keep asking focused questions rather than filling gaps yourself.
 
@@ -89,23 +101,30 @@ Filename rules:
 - if a card number is provided, write to `docs/user-story/<CARD_NUMBER>-<slug>.md`
 - otherwise write to `docs/user-story/YYYY-MM-DD-<slug>.md`
 
-Derive the slug from the resolved story title or the clearest business-oriented summary gathered during refinement.
+Derive the slug from the resolved story title.
+
+If an explicit alternate output path is provided, treat it as a directory path and apply the same filename rules inside that directory.
 
 If the target filename already exists, ask the human whether to overwrite, rename, or cancel before writing.
+
+`rename` means choosing a different filename for the new story while leaving the existing file untouched.
 
 Write the file before asking for approval.
 
 ### 5. Run the review subagent loop
 
-After writing the file, dispatch a constrained review subagent modeled after the brainstorming review flow.
+After writing the file, run the review step in one of these two modes:
 
-The subagent input must be limited to:
+- preferred: dispatch a constrained review subagent when the platform supports it
+- fallback: perform an inline self-review using the same bundled rubric, clearly separated from the drafting step
+
+The review input must be limited to:
 
 - the drafted markdown file
 - a short summary of resolved refinements
 - the review rubric from `templates/review-user-story.template.prompt.md`
 
-The review subagent must return one of:
+The review step must return one of:
 
 - `approved`
 - `needs_refinement`
@@ -120,11 +139,11 @@ The review must check:
 
 Allow at most 3 unsuccessful review cycles.
 
-If the subagent returns `needs_refinement`, ask the human a single refinement question, update the file, and rerun the review.
+If the review returns `needs_refinement`, ask the human a single refinement question, update the file, and rerun the review.
 
 If the human decides the ambiguity is acceptable or wants to proceed as-is, the human is the final authority. Honor that decision and move to the human review gate.
 
-If the subagent returns `too_broad`, ask the human whether to split the story or keep it as-is.
+If the review returns `too_broad`, ask the human whether to split the story or keep it as-is.
 
 If the human chooses to split:
 
@@ -135,7 +154,7 @@ If the human chooses to split:
 
 Do not decompose automatically without that human decision.
 
-If the review loop reaches 3 unsuccessful cycles without approval or an explicit human override, stop rerunning the subagent and surface the remaining issues to the human for guidance.
+If the review loop reaches 3 unsuccessful cycles without approval or an explicit human override, stop rerunning the review and surface the remaining issues to the human for guidance.
 
 ### 6. Human review gate
 
@@ -155,3 +174,4 @@ When the workflow completes, use this shape:
 - Preserve the user's terminology when it is clear and consistent.
 - Reserve `Open Questions` for genuine unresolved unknowns, not missing diligence.
 - Keep anything excluded during split decisions in `Out of Scope`, not hidden in prose.
+- Avoid em dashes (—) punctuation in written stories. Use other punctuation like colons, parentheses, commas, or periods.

@@ -1,6 +1,7 @@
 Create a user story from the resolved requirements.
 
 Keep the story business-oriented and concise. Do not turn it into a design document or implementation plan. Do not invent unsupported requirements.
+Avoid em dashes (—) punctuation in written stories. Use other punctuation like colons, parentheses, commas, or periods.
 
 Use this structure:
 
@@ -29,6 +30,8 @@ This section is optional. Use it to list simple bullet points for items that are
 ## Open Questions
 
 This section is optional. Use it only for genuine unresolved unknowns. Do not use it for details that were already clarified or could be inferred from the accepted story scope.
+
+If an optional section is not needed, omit its heading entirely.
 
 ## Acceptance Criteria
 
