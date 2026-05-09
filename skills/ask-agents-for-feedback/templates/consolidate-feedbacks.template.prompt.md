@@ -1,8 +1,8 @@
-You received feedback from multiple AI reviewers. Your job is to consolidate them into one clear, de-duplicated report for the implementer.
+Consolidate feedback from multiple AI reviewers into one de-duplicated report for the implementer.
 
 ## Inputs
 
-Paste each reviewer's feedback below, labeled by name:
+Paste each review below, labeled by reviewer:
 
 ### Reviewer 1: <NAME>
 
@@ -18,48 +18,61 @@ Paste each reviewer's feedback below, labeled by name:
 
 ## Instructions
 
-1. **Identify agreements:** Group findings that multiple reviewers raised. These are high-confidence items.
+1. **Identify agreements.** Group findings raised by multiple reviewers; these are higher-confidence items.
 
-2. **Identify unique insights:** Flag findings only one reviewer raised. These may be valuable but need the human's judgment.
+2. **Identify unique insights.** Flag findings raised by only one reviewer.
 
-3. **Detect disagreements:** Find cases where reviewers contradict each other or give opposing recommendations. Present each disagreement pairwise:
+3. **Detect disagreements.** Find conflicting findings or opposing recommendations. Build the pairwise table internally — do not present the full table to the human up front:
 
 | Topic | Position A (Reviewers) | Position B (Reviewers) |
 |-------|----------------------|----------------------|
 | ...   | ... (names)          | ... (names)          |
 
-Multiple rows per topic are allowed when more than two positions exist.
+Use multiple rows for a topic if more than two positions exist.
 
-4. **Ask the human to resolve each disagreement before proceeding.** Do not auto-resolve. Present the disagreement, wait for a decision, then continue.
+4. **Resolve disagreements one at a time.** For each disagreement:
+   - Present the single topic with both positions and which reviewers held each.
+   - State your recommendation in one sentence with a brief rationale.
+   - Ask the human to confirm, override, or provide their own resolution.
+   - Wait for the answer before moving to the next disagreement. Do not auto-resolve or batch.
 
-5. **Produce the final report** with these sections:
+5. **Triage improvements one at a time.** After all disagreements are resolved, walk through every suggested improvement (agreed and unique) one by one:
+   - Present the improvement with its source reviewer(s).
+   - Ask the human whether it is relevant and should be applied.
+   - Record the decision (accept / reject / defer) before moving on.
+
+6. **Produce the final report** with these sections, reflecting the human's decisions from steps 4 and 5:
 
 ## Final Report
 
 ### Agreed Strengths
-- Bullet points of strengths multiple reviewers confirmed
+- Strengths multiple reviewers confirmed
 
 ### Agreed Issues
-- Bullet points of issues multiple reviewers flagged, prioritized by how many reviewers raised them
+- Issues multiple reviewers flagged, prioritized by reviewer count
 
-### Agreed Improvements
-- Actionable suggestions multiple reviewers recommended
+### Accepted Improvements
+- Improvements the human marked relevant in step 5, with source reviewer(s)
+
+### Rejected or Deferred Improvements
+- Improvements the human chose not to apply, with brief reason if given
 
 ### Unique Insights
-- Findings from a single reviewer worth considering
+- Findings from a single reviewer worth considering (excluding ones already triaged as improvements)
 
 ### Open Questions
 - Unresolved questions from any reviewer
 
 ### Resolved Disagreements
 
-| Topic | Position A (Reviewers) | Position B (Reviewers) | Human Decision |
-|-------|----------------------|----------------------|----------------|
-| ...   | ...                  | ...                  | ...            |
+| Topic | Position A (Reviewers) | Position B (Reviewers) | Recommendation | Human Decision |
+|-------|----------------------|----------------------|----------------|----------------|
+| ...   | ...                  | ...                  | ...            | ...            |
 
 ## Tone
 
 - Constructive and polite
-- Actionable — clear next steps
+- Actionable and clear
 - No blame or harsh language
-- The audience is the implementer
+- Write for the implementer
+- Avoid em dashes (—) in the final report. Use colons, parentheses, commas, or periods instead.

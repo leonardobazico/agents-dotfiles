@@ -5,71 +5,73 @@ description: "Use when you need independent AI peer review from multiple CLIs fo
 
 # ask-agents-for-feedback
 
-Orchestrate parallel, readonly AI peer reviews from multiple CLI agents and collect their independent feedback on any artifact.
+Run parallel, readonly peer review across multiple CLI agents and collect their independent feedback.
 
 ## When To Use
 
-Use this skill when you need independent feedback from multiple AI CLIs on any of these artifact types:
+Use when you want independent review from multiple AI CLIs for an artifact such as:
 
-- Documents — READMEs, specs, design docs, ADRs
-- Code — source files, modules, libraries, scripts
-- Plans — implementation plans, migration plans, roadmaps
-- PRs — pull request diffs and descriptions
-- Designs — architecture diagrams, API designs, schema designs
+- Documents
+- Code
+- Plans
+- PRs
+- Designs
 
 ## Inputs
 
-| Input          | Required | Description                                                        |
-|----------------|----------|--------------------------------------------------------------------|
-| `artifactType` | Yes      | One of: `DOCUMENT`, `CODE`, `PLAN`, `PR`, `DESIGN`, `OTHER`       |
-| `artifactPath` | Yes      | Filesystem path to the artifact under review                       |
-| `focusAreas`   | No       | List of specific areas to focus the review on                      |
-| `constraints`  | No       | List of constraints or rules the reviewers should respect          |
+- `artifact` — required; reference to what is being reviewed. Accepts a filesystem path, PR identifier, branch name, specific commit, design reference, or freeform description.
+- `artifactType` — required; one of `DOCUMENT`, `CODE`, `PLAN`, `PR`, `DESIGN`, `OTHER`
+- `relevantPaths` — optional; list of files/directories the reviewer should start from. Reviewers may explore beyond these as needed.
+- `focusAreas` — optional; specific review focus areas
+- `constraints` — optional; constraints reviewers should respect
 
 ## Prompt Construction
 
-Read the review prompt template from `templates/ask-agents-for-feedback.template.prompt.md` (co-located at `skills/ask-agents-for-feedback/templates/ask-agents-for-feedback.template.prompt.md`). Replace the placeholders with the inputs above:
+Read the co-located `templates/ask-agents-for-feedback.template.prompt.md` file and replace each placeholder. Format multi-value fields as Markdown bulleted lists.
 
 - `<ARTIFACT_TYPE>` → value of `artifactType`
-- `<PATH>` → value of `artifactPath`
-- `<FOCUS_AREAS>` → formatted list from `focusAreas`, or "No specific focus areas — review holistically." if empty
-- `<CONSTRAINTS>` → formatted list from `constraints`, or "No additional constraints." if empty
+- `<ARTIFACT>` → value of `artifact`
+- `<RELEVANT_PATHS>` → Markdown bulleted list from `relevantPaths`, or "No specific paths — explore as needed." if empty
+- `<FOCUS_AREAS>` → Markdown bulleted list from `focusAreas`, or "No specific focus areas — review holistically." if empty
+- `<CONSTRAINTS>` → Markdown bulleted list from `constraints`, or "No additional constraints." if empty
 
-Do not duplicate the prompt template content here. The template file is the single source of truth.
+Do not duplicate the template here; the template file is the single source of truth.
 
 ## Self-Detection
 
-You are running as one of the CLIs listed below. Identify which one you are and remove yourself from the reviewer list before executing. You must not invoke yourself recursively.
+Identify which CLI you are (from the table below) and remove yourself from the reviewer list. Do not invoke yourself recursively. If all other CLIs subsequently fail, see `Execution` step 5 for the self-review fallback.
 
 ## CLI Invocation Table
 
-| CLI     | Readonly Flag                        | Non-Interactive Flag | Add Directory Flag      | Notes                                                                                          |
-|---------|--------------------------------------|----------------------|-------------------------|------------------------------------------------------------------------------------------------|
-| Claude  | `--permission-mode plan`             | `--print`            | `--add-dir <dir>`       | Native plan mode                                                                               |
-| Gemini  | `--approval-mode plan`               | `--prompt`           | `--include-directories` | Native plan mode                                                                               |
-| Codex   | `--sandbox read-only`                | `exec`               | `--add-dir <dir>`       | Sandboxed read-only                                                                            |
-| Copilot | `--available-tools="grep,glob,view"` | `--prompt <text>`          | `--add-dir <dir>`       | Takes prompt as argument (not stdin). Use temp file + command substitution for long prompts |
+| CLI     | Readonly Flag                        | Non-Interactive Flag | Add Directory Flag      | Notes                  |
+|---------|--------------------------------------|----------------------|-------------------------|------------------------|
+| Claude  | `--permission-mode plan`             | `--print`            | `--add-dir <dir>`       | Native plan mode       |
+| Gemini  | `--approval-mode plan`               | `--prompt`           | `--include-directories` | Native plan mode       |
+| Codex   | `--sandbox read-only`                | `exec`               | `--add-dir <dir>`       | Sandboxed read-only    |
+| Copilot | `--available-tools="grep,glob,view"` | `--prompt <text>`    | `--add-dir <dir>`       | Prompt as arg, see below |
+
+Copilot takes the prompt as a command-line argument (not stdin); use the temp-file pattern shown in `Prompt Passing` for long prompts.
 
 ## Prompt Passing
 
-Each CLI has a different mechanism for receiving prompts non-interactively. Use the correct method per CLI:
+Use the correct non-interactive prompt mechanism for each CLI:
 
-Claude — reads prompt from stdin via `--print`:
+Claude:
 ```bash
 echo "<PROMPT>" | claude --permission-mode plan --add-dir /path/to/repo --print
 ```
 
-Gemini — reads prompt from stdin via `--prompt -`:
+Gemini:
 ```bash
 echo "<PROMPT>" | gemini --approval-mode plan --include-directories /path/to/repo --prompt -
 ```
 
-Codex — reads prompt from stdin via `exec`:
+Codex:
 ```bash
 echo "<PROMPT>" | codex exec --sandbox read-only
 ```
 
-Copilot — takes prompt as a direct argument to `--prompt`, does NOT read stdin. Write the prompt to a temp file and pass it via command substitution:
+Copilot:
 ```bash
 PROMPT_FILE=$(mktemp) && cat <<'EOF' > "$PROMPT_FILE"
 <PROMPT>
@@ -77,24 +79,22 @@ EOF
 copilot --prompt "$(cat "$PROMPT_FILE")" --available-tools="grep,glob,view" --add-dir /path/to/repo --silent && rm -f "$PROMPT_FILE"
 ```
 
-Replace `<PROMPT>` with the fully constructed prompt and `/path/to/repo` with the actual repository root.
+Replace `<PROMPT>` and `/path/to/repo` with real values.
 
 ## Preflight Checks
 
-Before invoking any CLI, perform these checks:
+Before invoking any CLI:
 
-1. Artifact exists and is readable. Verify that `artifactPath` points to an existing, readable file. If not, abort with an error.
-2. CLI binary is installed and on `PATH`. For each target CLI, check that the binary is available (e.g., `which claude`). If a CLI is not found, report it and skip that CLI — do not fail the entire run.
+1. If `artifact` is a filesystem path, verify it exists and is readable. If not, abort. For non-path artifacts (PR, branch, commit, design, freeform), skip this check.
+2. Check each target CLI is on `PATH`. If one is missing, report it and skip it.
 
 ## Execution
 
-1. After preflight, run all remaining CLIs in parallel as subagents.
-2. Each invocation returns:
-   - CLI name — which agent produced the output
-   - Raw output — the full response text
-   - Status — success or failure
-3. Apply a reasonable timeout per invocation. If a CLI times out, mark it as failed.
-4. Fail fast on errors — if a CLI returns an error, capture it and move on. Do not attempt to adapt flags, retry with `--help`, or guess alternative invocations.
+1. Run all remaining CLIs in parallel as subagents.
+2. Capture `CLI name`, `raw output`, and `status` for each invocation.
+3. Apply a 10-minute timeout per invocation. Before killing a process that hits the timeout, ask the user whether to terminate or wait longer.
+4. If a CLI errors, capture it and continue. Do not retry or guess alternate flags. Partial failure is acceptable — return all collected outputs alongside the failures.
+5. If every other CLI fails (all-fail fallback), ask the user whether to perform a self-review via the current CLI before producing the final output.
 
 ## Output
 
@@ -114,13 +114,11 @@ Present each CLI's feedback labeled by name:
 <codex's feedback>
 ```
 
-Then ask:
-
-> Would you like me to consolidate these into a final report? If yes, I'll use the consolidation prompt to detect disagreements and produce a de-duplicated report.
+Then run the consolidation handoff step.
 
 ## Consolidation Handoff
 
-If the user requests consolidation, read the consolidation prompt from `templates/consolidate-feedbacks.template.prompt.md` (co-located at `skills/ask-agents-for-feedback/templates/consolidate-feedbacks.template.prompt.md`) and follow its instructions, passing all collected feedback as input.
+Read `templates/consolidate-feedbacks.template.prompt.md` and execute its instructions yourself, treating the collected feedback as input. Do not print the template text to the user — produce the consolidated report it describes.
 
 ## Guardrails
 

@@ -1,8 +1,11 @@
-You are reviewing a <ARTIFACT_TYPE>.
+Review this <ARTIFACT_TYPE>.
 
-Artifact:
-File: <PATH>
-Read this file and explore surrounding files in the repository as needed for full context.
+Artifact: `<ARTIFACT>`
+
+Relevant paths to start from:
+<RELEVANT_PATHS>
+
+Read the listed paths first, then explore surrounding repository files only as needed for context.
 
 Focus areas:
 <FOCUS_AREAS>
@@ -10,11 +13,11 @@ Focus areas:
 Constraints:
 <CONSTRAINTS>
 
-Return sections:
+Return:
 1. Strengths
 2. Issues to Address
 3. Suggested Improvements
 4. Open Questions
 
 Important:
-Audience is the implementer. Help them improve and learn. Avoid blame.
+Write for the implementer. Be constructive, brief and avoid blame.
