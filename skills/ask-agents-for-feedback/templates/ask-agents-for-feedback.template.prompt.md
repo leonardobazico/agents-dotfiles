@@ -17,7 +17,7 @@ Return:
 1. Strengths
 2. Issues to Address
 3. Suggested Improvements
-4. Open Questions
+4. Open Questions (if any)
 
 Important:
 Write for the implementer. Be constructive, brief and avoid blame.

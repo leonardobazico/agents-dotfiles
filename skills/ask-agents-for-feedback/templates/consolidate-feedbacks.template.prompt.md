@@ -36,10 +36,11 @@ Use multiple rows for a topic if more than two positions exist.
    - Ask the human to confirm, override, or provide their own resolution.
    - Wait for the answer before moving to the next disagreement. Do not auto-resolve or batch.
 
-5. **Triage improvements one at a time.** After all disagreements are resolved, walk through every suggested improvement (agreed and unique) one by one:
+5. **Triage improvements one at a time.** After all disagreements are resolved, walk through every suggested improvement (agreed, unique and resolved) one by one:
    - Present the improvement with its source reviewer(s).
-   - Ask the human whether it is relevant and should be applied.
-   - Record the decision (accept / reject / defer) before moving on.
+   - State your recommendation in one sentence with a brief rationale.
+   - Ask the human whether it is relevant and should be accepted / rejected / deferred.
+   - Record the decision (accepted / rejected / deferred) before moving on.
 
 6. **Produce the final report** with these sections, reflecting the human's decisions from steps 4 and 5:
 
@@ -57,22 +58,20 @@ Use multiple rows for a topic if more than two positions exist.
 ### Rejected or Deferred Improvements
 - Improvements the human chose not to apply, with brief reason if given
 
-### Unique Insights
-- Findings from a single reviewer worth considering (excluding ones already triaged as improvements)
-
 ### Open Questions
 - Unresolved questions from any reviewer
 
 ### Resolved Disagreements
 
-| Topic | Position A (Reviewers) | Position B (Reviewers) | Recommendation | Human Decision |
-|-------|----------------------|----------------------|----------------|----------------|
-| ...   | ...                  | ...                  | ...            | ...            |
+- <TOPIC>: Brief description of the disagreement topic
+- <POSITION_A>: Summary of one side's position and which reviewers held it
+- <POSITION_B>: Summary of the opposing position and which reviewers held it
+- <RECOMMENDATION>: Your recommended resolution in one sentence with rationale
+- <HUMAN_DECISION>: The human's final decision (confirm A, confirm B, override with own resolution)
 
 ## Tone
 
 - Constructive and polite
 - Actionable and clear
 - No blame or harsh language
-- Write for the implementer
 - Avoid em dashes (—) in the final report. Use colons, parentheses, commas, or periods instead.
