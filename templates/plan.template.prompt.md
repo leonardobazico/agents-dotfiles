@@ -14,7 +14,7 @@ Requirements:
   - write code to make test pass
 - each commit should be rely on pre-commit checks to ensure quality and correctness
 - consider that the implementation will be done by someone else, the plan should be concise for them to follow without ambiguity
-- target audience is code harness agents, so not need to keep it human friendly, drop articles, fragments OK, short synonyms, be brief.
+- target audience is code harness agents, be concise and brief.
 - the commit messages should not add co-authored-by
 - include small improvements in the touching areas
 - the implementation should be done in small increments and reviewed by human in the loop
