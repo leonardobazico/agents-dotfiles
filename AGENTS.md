@@ -23,6 +23,10 @@ agents-dotfiles/
 
 - [GNU Stow](https://www.gnu.org/software/stow/) (`brew install stow`)
 
+## Repo Workflow
+
+This is a trunk-based project. Work directly on `main` unless a task explicitly says otherwise.
+
 ## Makefile Usage
 
 Run `make help` to see all available targets.
@@ -43,14 +47,34 @@ Run `make help` to see all available targets.
 | `make unlink-all` | Run all unlink targets |
 | `make relink-all` | Run all relink targets |
 
+## Pre-Commit
+
+Install `pre-commit` with your preferred Python tool, then enable the hook:
+
+```bash
+pre-commit install
+```
+
+Run the full repo pass when you first set it up or need to recheck everything:
+
+```bash
+pre-commit run --all-files
+```
+
+Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-formatted, in this initial setup.
+
+Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g. `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
+
 ## Adding a New Skill
 
 1. Create a directory in `skills/` with a lowercase, hyphenated name:
+
    ```
    mkdir -p skills/my-new-skill
    ```
 
 2. Add a `SKILL.md` with required YAML frontmatter:
+
    ```yaml
    ---
    name: my-new-skill
@@ -78,6 +102,7 @@ Skills are distributed to two paths via GNU Stow:
 - **`~/.claude/skills/`** — Discovered by Claude Code (also by OpenCode and Copilot as a secondary path).
 
 Each skill directory in `skills/` becomes a symlink at the target paths. For example:
+
 ```
 ~/.agents/skills/ask-agents-for-feedback -> <repo>/skills/ask-agents-for-feedback
 ~/.claude/skills/ask-agents-for-feedback -> <repo>/skills/ask-agents-for-feedback

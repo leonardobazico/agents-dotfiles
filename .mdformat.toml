@@ -1,0 +1,2 @@
+# Renumber ordered lists consecutively (1. 2. 3.) instead of preserving source numbers.
+number = true

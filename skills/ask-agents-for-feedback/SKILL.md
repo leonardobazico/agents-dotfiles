@@ -43,12 +43,12 @@ Identify which CLI you are (from the table below) and remove yourself from the r
 
 ## CLI Invocation Table
 
-| CLI     | Readonly Flag                        | Non-Interactive Flag | Add Directory Flag      | Notes                  |
+| CLI | Readonly Flag | Non-Interactive Flag | Add Directory Flag | Notes |
 |---------|--------------------------------------|----------------------|-------------------------|------------------------|
-| Claude  | `--permission-mode plan`             | `--print`            | `--add-dir <dir>`       | Native plan mode       |
-| Gemini  | `--approval-mode plan`               | `--prompt`           | `--include-directories` | Native plan mode       |
-| Codex   | `--sandbox read-only`                | `exec`               | `--add-dir <dir>`       | Sandboxed read-only    |
-| Copilot | `--available-tools="grep,glob,view"` | `--prompt <text>`    | `--add-dir <dir>`       | Prompt as arg, see below |
+| Claude | `--permission-mode plan` | `--print` | `--add-dir <dir>` | Native plan mode |
+| Gemini | `--approval-mode plan` | `--prompt` | `--include-directories` | Native plan mode |
+| Codex | `--sandbox read-only` | `exec` | `--add-dir <dir>` | Sandboxed read-only |
+| Copilot | `--available-tools="grep,glob,view"` | `--prompt <text>` | `--add-dir <dir>` | Prompt as arg, see below |
 
 Copilot takes the prompt as a command-line argument (not stdin); use the temp-file pattern shown in `Prompt Passing` for long prompts.
 
@@ -57,21 +57,25 @@ Copilot takes the prompt as a command-line argument (not stdin); use the temp-fi
 Use the correct non-interactive prompt mechanism for each CLI:
 
 Claude:
+
 ```bash
 echo "<PROMPT>" | claude --permission-mode plan --add-dir /path/to/repo --print
 ```
 
 Gemini:
+
 ```bash
 echo "<PROMPT>" | gemini --approval-mode plan --include-directories /path/to/repo --prompt -
 ```
 
 Codex:
+
 ```bash
 echo "<PROMPT>" | codex exec --sandbox read-only
 ```
 
 Copilot:
+
 ```bash
 PROMPT_FILE=$(mktemp) && cat <<'EOF' > "$PROMPT_FILE"
 <PROMPT>
