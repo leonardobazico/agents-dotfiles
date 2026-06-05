@@ -5,11 +5,11 @@ description: Turn a rough feature idea into a written user story through one-que
 
 # write-user-story
 
-Create a business-oriented user story from a rough idea or feature list. Refine requirements one question at a time, write the story to `docs/user-story/`, run a constrained review step, resolve any needed follow-up with the human, and stop after asking the human to review the written file.
+Create a business-oriented user story from a rough idea or feature list. Refine requirements one question at a time, write the story to `docs/user-stories/`, run a constrained review step, resolve any needed follow-up with the human, and stop after asking the human to review the written file.
 
 ## Defaults
 
-- Output directory: `docs/user-story/`
+- Output directory: `docs/user-stories/`
 - Draft prompt: `templates/user-story.template.prompt.md`
 - Review prompt: `templates/review-user-story.template.prompt.md`
 
@@ -98,8 +98,8 @@ Ensure the output directory exists before writing.
 
 Filename rules:
 
-- if a card number is provided, write to `docs/user-story/<CARD_NUMBER>-<slug>.md`
-- otherwise write to `docs/user-story/YYYY-MM-DD-<slug>.md`
+- if a card number is provided, write to `docs/user-stories/<CARD_NUMBER>-<slug>.md`
+- otherwise write to `docs/user-stories/YYYY-MM-DD-<slug>.md`
 
 Derive the slug from the resolved story title.
 
