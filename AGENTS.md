@@ -1,5 +1,7 @@
 # agents-dotfiles
 
+> `CLAUDE.md` in the same directory is a symlink to `AGENTS.md`. Edit `AGENTS.md` only; `CLAUDE.md` follows automatically.
+
 AI agent workflow dotfiles managed via GNU Stow. This repo stores custom skills and prompt templates, and uses stow to distribute them to agent tool discovery paths.
 
 ## Repository Structure
@@ -7,7 +9,10 @@ AI agent workflow dotfiles managed via GNU Stow. This repo stores custom skills 
 ```
 agents-dotfiles/
 ├── AGENTS.md         — This file (repo maintenance guide)
-├── Makefile          — GNU Stow-based skills distribution
+├── Makefile          — GNU Stow-based distribution targets for skills and agent config files
+├── agents-md/        — Stow package for default agent instruction files
+│   ├── AGENTS.md     — Canonical default agent instructions
+│   └── CLAUDE.md     — Symlink alias to `AGENTS.md`
 ├── skills/           — Custom agent skills (source of truth)
 │   └── <skill-name>/
 │       ├── SKILL.md  — Skill instructions (required)
@@ -38,6 +43,14 @@ Run `make help` to see all available targets.
 | `make link-skills` | Stow skills to `~/.agents/skills/` and `~/.claude/skills/` |
 | `make unlink-skills` | Remove stowed skill symlinks |
 | `make relink-skills` | Restow skills (run after adding/removing skills) |
+
+### Agent config targets
+
+| Target | Description |
+|--------|-------------|
+| `make link-agents-md` | Stow the `agents-md/` package to `~/.agents`, `~/.claude`, and `~/.codex` |
+| `make unlink-agents-md` | Remove stowed `agents-md/` symlinks from `~/.agents`, `~/.claude`, and `~/.codex` |
+| `make relink-agents-md` | Restow the `agents-md/` package after updating its files |
 
 ### Meta targets
 
@@ -90,9 +103,15 @@ Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note th
 
 5. Commit the new skill.
 
-## Adding Agent Config Files
+## Agent Config Distribution
 
-_Planned for future work._ Each agent will get its own stow package directory at the repo root (e.g., `opencode/`, `claude/`) with `link-<agent>` / `unlink-<agent>` / `relink-<agent>` targets.
+- `agents-md/AGENTS.md` is the canonical source for installed default agent instructions.
+- `agents-md/CLAUDE.md` is a symlink alias to `AGENTS.md`.
+- `make link-agents-md` stows this package to `~/.agents`, `~/.claude`, and `~/.codex`.
+- `make unlink-agents-md` removes those symlinks.
+- `make relink-agents-md` refreshes those symlinks after edits.
+
+This is separate from the repo-root `AGENTS.md` and `CLAUDE.md`, where `CLAUDE.md` remains a symlink that follows `AGENTS.md`.
 
 ## Skills Distribution
 

@@ -1,9 +1,16 @@
 STOW_DIR := $(CURDIR)
-AGENTS_SKILLS_TARGET := $(HOME)/.agents/skills
-CLAUDE_SKILLS_TARGET := $(HOME)/.claude/skills
+AGENTS_TARGET := $(HOME)/.agents
+CLAUDE_TARGET := $(HOME)/.claude
+CODEX_TARGET := $(HOME)/.codex
+AGENTS_SKILLS_TARGET := $(AGENTS_TARGET)/skills
+CLAUDE_SKILLS_TARGET := $(CLAUDE_TARGET)/skills
 
 .DEFAULT_GOAL := help
-.PHONY: link-skills unlink-skills relink-skills link-all unlink-all relink-all help
+.PHONY: \
+	link-skills unlink-skills relink-skills \
+	link-agents-md unlink-agents-md relink-agents-md \
+	link-all unlink-all relink-all \
+	help
 
 link-skills: ##@skills Link skills to agent discovery paths
 	@mkdir -p $(AGENTS_SKILLS_TARGET) $(CLAUDE_SKILLS_TARGET)
@@ -19,9 +26,26 @@ relink-skills: ##@skills Relink skills (update after changes)
 	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_SKILLS_TARGET) --restow skills
 	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_SKILLS_TARGET) --restow skills
 
-link-all: link-skills ##@setup Link everything
-unlink-all: unlink-skills ##@setup Unlink everything
-relink-all: relink-skills ##@setup Relink everything (update after changes)
+link-agents-md: ##@agents Link agents markdown to agent discovery paths
+	@mkdir -p $(AGENTS_TARGET) $(CLAUDE_TARGET) $(CODEX_TARGET)
+	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --stow agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --stow agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --stow agents-md
+
+unlink-agents-md: ##@agents Unlink agents markdown from agent discovery paths
+	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --delete agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --delete agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --delete agents-md
+
+relink-agents-md: ##@agents Relink agents markdown (update after changes)
+	@mkdir -p $(AGENTS_TARGET) $(CLAUDE_TARGET) $(CODEX_TARGET)
+	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --restow agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --restow agents-md
+	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --restow agents-md
+
+link-all: link-skills link-agents-md ##@setup Link everything
+unlink-all: unlink-skills unlink-agents-md ##@setup Unlink everything
+relink-all: relink-skills relink-agents-md ##@setup Relink everything (update after changes)
 
 ######################################################
 ################### help generator ###################
