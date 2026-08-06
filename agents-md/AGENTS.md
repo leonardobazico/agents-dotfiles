@@ -137,6 +137,8 @@ Style feedback is secondary.
 
 - Do not revert unrelated user changes without explicit instruction.
 - Avoid destructive git or filesystem operations unless requested.
+- Respect `.gitignore`. Never use `git add --force` (or `-f`) to stage ignored files.
+- Do not commit superpowers-generated working files (e.g. specs, plans) unless the user explicitly asks.
 - Treat generated files as outputs. Edit the source-of-truth input instead.
 - If the worktree is dirty, run `git status` before editing and limit changes to files required for the task. Do not revert, stash, or reformat unrelated modifications.
 - If unrelated local changes overlap with files you must edit, stop and ask the user how to proceed rather than guessing intent.
