@@ -27,7 +27,7 @@ Use when you want independent review from multiple AI CLIs for an artifact such 
 
 ## Prompt Construction
 
-Read the co-located `templates/ask-agents-for-feedback.template.prompt.md` file and replace each placeholder. Format multi-value fields as Markdown bulleted lists.
+Read the shared `../templates/request-feedback.template.prompt.md` file (relative to this skill's directory) and replace each placeholder. Format multi-value fields as Markdown bulleted lists.
 
 - `<ARTIFACT_TYPE>` → value of `artifactType`
 - `<ARTIFACT>` → value of `artifact`
@@ -122,7 +122,7 @@ Then run the consolidation handoff step.
 
 ## Consolidation Handoff
 
-Read `templates/consolidate-feedbacks.template.prompt.md` and execute its instructions yourself, treating the collected feedback as input. Do not print the template text to the user — produce the consolidated report it describes.
+Read `../templates/consolidate-feedbacks.template.prompt.md` (relative to this skill's directory) and execute its instructions yourself, treating the collected feedback as input. Do not print the template text to the user — produce the consolidated report it describes.
 
 ## Guardrails
 
