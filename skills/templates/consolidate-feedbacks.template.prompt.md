@@ -30,7 +30,7 @@ If there is exactly one review above and it was produced by the current agent it
 
 No other tag values exist. Keep every tag's surrounding note brief: one line, no restatement of the artifact or of feedback already quoted elsewhere.
 
-**If exactly one review was collected (and it is not a same-origin review), use the Single-Review Path: skip steps 1 and 3 below, and use the Single-Review branch of step 2.** Otherwise use the Standard Path: steps 1-4 as written, with the Standard-Path branch of step 2.
+**If exactly one review was collected (and it is not a same-origin review), use the Single-Review Path: skip the pairwise-table steps (1 and 3), use the Single-Review branch of step 2, and run step 4 only if step 2 produced a `Self: disagrees` finding.** Otherwise use the Standard Path: steps 1-4 as written, with the Standard-Path branch of step 2.
 
 1. **Identify agreements (Standard Path only).** Group findings raised by multiple reviewers; these are higher-confidence items. Tag each group with self's stance from Step 0.
 
@@ -48,13 +48,14 @@ Use multiple rows for a topic if more than two positions exist. The `Self` colum
 
 If self disagrees with a finding that all reviewers agree on (no reviewer-vs-reviewer disagreement exists on that topic), do not add a row for it here. Express it solely via the `Self: disagrees` tag on the finding in step 1 or 2, it does not get its own entry in the resolution loop (step 4).
 
-4. **Resolve disagreements one at a time (Standard Path only).** For each disagreement in the pairwise table:
-   - Present the single topic with both positions, which reviewers held each, and self's stance from the `Self` column.
+4. **Resolve disagreements one at a time.** Run this step only if disagreements exist: on the Standard Path, for each row in the step 3 pairwise table; on the Single-Review Path, only if step 2 found any `Self: disagrees` finding. For each disagreement:
+   - Standard Path: present the topic with both reviewer positions and self's stance from the `Self` column.
+   - Single-Review Path: present the topic with self's position vs. the lone reviewer's position.
    - State your recommendation in one sentence with a brief rationale.
    - Ask the human to confirm, override, or provide their own resolution.
    - Wait for the answer before moving to the next disagreement. Do not auto-resolve or batch.
 
-5. **Triage improvements one at a time.** After all disagreements are resolved (Standard Path) or after step 2 (Single-Review Path), walk through every suggested improvement one by one:
+5. **Triage improvements one at a time.** After all disagreements are resolved (step 4, if it ran) or immediately after step 2 if no disagreements existed, walk through every suggested improvement one by one:
    - Standard Path source: every improvement raised as agreed, unique, or surfaced by a resolved disagreement.
    - Single-Review Path source: every actionable improvement from the one reviewer, plus any self-only improvement (tagged `Reviewer: not covered` in step 2) the reviewer didn't mention. Both go through the same triage process below with no distinction between reviewer-sourced and self-only items.
    - Present the improvement with its source (reviewer name(s), or "Self" for a self-only item).
@@ -76,7 +77,7 @@ If self disagrees with a finding that all reviewers agree on (no reviewer-vs-rev
 - Issues multiple reviewers flagged, prioritized by reviewer count, each tagged Self: agrees / disagrees / no position
 
 ### Accepted Improvements
-- Improvements the human marked relevant in step 5, with source reviewer(s) or Self
+- Improvements the human marked relevant in step 5, with source reviewer(s)
 
 ### Rejected or Deferred Improvements
 - Improvements the human chose not to apply, with brief reason if given
@@ -109,7 +110,7 @@ If self disagrees with a finding that all reviewers agree on (no reviewer-vs-rev
 - Improvements the human chose not to apply, with brief reason if given
 
 ### Open Questions
-- Unresolved questions from the review or from self
+- Unresolved questions from the review
 
 ### Resolved Disagreements
 - Only include this section if self and the single reviewer actually disagreed on something in step 4; omit the section entirely otherwise (do not leave it empty).
