@@ -64,7 +64,7 @@ If self disagrees with a finding that all reviewers agree on (no reviewer-vs-rev
 
 6. **Produce the final report**, reflecting the human's decisions from steps 4 and 5. Use the Standard Report Shape if 2+ reviews were collected, or the Single-Review Report Shape if exactly one non-same-origin review was collected.
 
-## Final Report — Standard Shape (2+ reviewers)
+## Final Report: Standard Shape (2+ reviewers)
 
 ### Self Position
 - Self's independent view from Step 0, brief bullets, stated before reviewer findings were compared
@@ -93,7 +93,7 @@ If self disagrees with a finding that all reviewers agree on (no reviewer-vs-rev
 - <RECOMMENDATION>: Your recommended resolution in one sentence with rationale
 - <HUMAN_DECISION>: The human's final decision (confirm A, confirm B, override with own resolution)
 
-## Final Report — Single-Review Shape (exactly one review, not same-origin)
+## Final Report: Single-Review Shape (exactly one review, not same-origin)
 
 ### Self Position
 - Self's independent view from Step 0, brief bullets, stated before the review's findings were compared
