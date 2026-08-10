@@ -113,7 +113,7 @@ Skill and template content (`SKILL.md`, `skills/templates/*.md`) is a prompt an 
 
 When a skill grows through iteration, re-read it for duplicated phrasing before committing and compact it, the same way code gets refactored.
 
-**Prefer a script over prose for any mechanical step.** If a step is "compute X from the repo state" or "extract/transform a file into a fixed shape" (git ranges, path lookups, ledger parsing, template placeholder substitution), write a script and have the skill call it, rather than describing the procedure in prose for the agent to re-derive each run. A script is testable in isolation (run it, check the output) and gives the same result every time; prose is re-interpreted by the model on every invocation and can drift. Reserve prose for steps that genuinely need judgment (what to say to the human, how to weigh a tradeoff). superpowers:subagent-driven-development's `scripts/` directory (`sdd-workspace`, `task-brief`, `review-package`) is the reference pattern for this.
+**Script mechanical steps** (git ranges, path lookups, template substitution): have the skill call a script instead of describing the procedure in prose. Scripts are testable and repeatable; prose is re-interpreted each run and drifts. Reserve prose for judgment calls. Reference: `subagent-driven-development`'s `scripts/` directory.
 
 ## Agent Config Distribution
 
