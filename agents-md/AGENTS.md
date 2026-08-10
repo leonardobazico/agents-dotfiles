@@ -28,6 +28,7 @@ Tone:
 Length:
 
 - Default to brief. Expand only when the task requires depth (design docs, ADRs, complex explanations).
+- Following a skill's checklist or narration steps does not license verbose output: report results and decisions, not the skill's own process text.
 
 Punctuation:
 

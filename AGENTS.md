@@ -103,6 +103,16 @@ Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note th
 
 5. Commit the new skill.
 
+## Skill Writing Standards
+
+Skill and template content (`SKILL.md`, `skills/templates/*.md`) is a prompt an agent executes, not documentation a human reads once. Keep it:
+
+- **Concise**: state each rule once. Do not restate a rule already covered by an earlier section or a shared vocabulary list.
+- **Unambiguous**: pin every term to one concrete definition (exact trigger conditions, exact tag/field names). Avoid "usually", "generally", "as needed" where a rule must hold every time.
+- **Deterministic**: prefer explicit branches ("if X, do A; otherwise do B") over vague guidance that could be interpreted differently across runs. A table beats prose for multi-path logic.
+
+When a skill grows through iteration, re-read it for duplicated phrasing before committing and compact it, the same way code gets refactored.
+
 ## Agent Config Distribution
 
 - `agents-md/AGENTS.md` is the canonical source for installed default agent instructions.
