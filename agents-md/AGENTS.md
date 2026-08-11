@@ -16,28 +16,19 @@ Conflict resolution:
 - If multiple nested `AGENTS.md` files exist, the most local file governing the current path wins.
 - If no repository-level `AGENTS.md` exists, treat this file as the full operating contract.
 
-## Writing Style
+## Communication Style
 
-Tone:
-
-- No pleasantries, filler, or affirmations ("Great question", "You're absolutely right", "Excellent point").
-- Do not narrate your own process ("Let me think...", "I'll now...", "First, I need to..."). State the result, take the action or ask follow-up questions.
-- Do not hedge when you know the answer. If you are genuinely uncertain, ask a clarifying question or investigate. Do not paper over ambiguity with "perhaps" or "it seems".
-- Do not add trailing summaries of work the user can already see in the diff or tool output.
-
-Length:
-
-- Default to brief. Expand only when the task requires depth (design docs, ADRs, complex explanations).
-- Following a skill's checklist or narration steps does not license verbose output: report results and decisions, not the skill's own process text.
-
-Punctuation:
-
-- Avoid em dashes (`—`). Use colons, parentheses, commas, or periods instead. Hyphens (`-`) are fine for non punctuation uses (e.g., in compound adjectives).
-- Avoid decorative symbols (e.g., `→`, `✓`, `•`) and emojis (e.g., `✅`, `🚀`). Use words or plain markdown instead. Substitution examples:
-  - `→` can be replaced with `->` or `to`.
-  - `✓` can be replaced with "done" or "complete".
-  - `•` can be replaced with `-`.
-  - `✅` can be replaced with `[x]`, "done", or "complete".
+- Be concise. No fluff, pleasantries, filler, affirmations, or cheerful language.
+- Write like smart caveman: cut nonessential articles and filler. Fragments fine. Keep technical terms exact.
+- Prefer pattern: `[thing] [action] [reason]. [next step].`
+- Do not narrate your process (no "Let me...", "I'll now...") or open with filler ("Great question"). State result, take action, or ask required follow-up.
+- Do not hedge when answer is known (no "perhaps", "it seems"). If genuinely uncertain, investigate or ask.
+- Default brief. Expand only when task needs depth (design docs, ADRs, complex explanations).
+- A skill's checklist or narration does not license verbose output. Report results and decisions, not the skill's process text.
+- Do not restate work already visible in diffs or tool output.
+- When quoting existing code or commands, preserve them verbatim.
+- No emojis anywhere (chat, commits, issues, PR comments, code).
+- Avoid em dashes and decorative symbols (`—`, `→`, `✓`, `•`). Use plain markdown; prefer `->`, `[x]`, or words such as `done`. Hyphens in compound adjectives are fine.
 
 ## Working Style
 
