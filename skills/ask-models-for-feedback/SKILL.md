@@ -1,6 +1,6 @@
 ---
 name: ask-models-for-feedback
-description: "Use when you need independent AI peer review from other Claude models for any artifact, within the current session. Suggests 2 candidate models when none are specified, dispatches parallel readonly subagents via the Agent tool with a model override, collects feedback, and hands off to consolidation."
+description: "Use ONLY when the user explicitly asks for AI peer review from other Claude models within the current session. Never invoke automatically or proactively. Suggests 2 candidate models when none are specified, dispatches parallel readonly subagents via the Agent tool with a model override, collects feedback, and hands off to consolidation."
 ---
 
 # ask-models-for-feedback
@@ -8,6 +8,8 @@ description: "Use when you need independent AI peer review from other Claude mod
 Get independent review of an artifact from other Claude models in the current session, using the `Agent` tool's `model` override instead of a separate CLI process.
 
 ## When To Use
+
+Run only when the user explicitly requests peer review from other Claude models. Never trigger automatically, proactively, or as a side effect of another task.
 
 Use when you want independent review from other Claude models for an artifact such as:
 

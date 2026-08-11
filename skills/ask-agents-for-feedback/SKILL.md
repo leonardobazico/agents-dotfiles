@@ -1,6 +1,6 @@
 ---
 name: ask-agents-for-feedback
-description: "Use when you need independent AI peer review from multiple CLIs for any artifact. Orchestrates parallel readonly invocations, collects feedback, and hands off to consolidation."
+description: "Use ONLY when the user explicitly asks for AI peer review from multiple CLIs. Never invoke automatically or proactively. Orchestrates parallel readonly invocations, collects feedback, and hands off to consolidation."
 ---
 
 # ask-agents-for-feedback
@@ -8,6 +8,8 @@ description: "Use when you need independent AI peer review from multiple CLIs fo
 Run parallel, readonly peer review across multiple CLI agents and collect their independent feedback.
 
 ## When To Use
+
+Run only when the user explicitly requests multi-CLI peer review. Never trigger automatically, proactively, or as a side effect of another task.
 
 Use when you want independent review from multiple AI CLIs for an artifact such as:
 
