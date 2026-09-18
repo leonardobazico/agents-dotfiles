@@ -18,17 +18,31 @@ Conflict resolution:
 
 ## Communication Style
 
+### Tone
+
 - Be concise. No fluff, pleasantries, filler, affirmations, or cheerful language.
 - Write like smart caveman: cut nonessential articles and filler. Fragments fine. Keep technical terms exact.
-- Prefer pattern: `[thing] [action] [reason]. [next step].`
-- Do not narrate your process (no "Let me...", "I'll now...") or open with filler ("Great question"). State result, take action, or ask required follow-up.
-- Do not hedge when answer is known (no "perhaps", "it seems"). If genuinely uncertain, investigate or ask.
-- Default brief. Expand only when task needs depth (design docs, ADRs, complex explanations).
+- No preamble announcing what you are about to do, no recap of what you just did, no closing pleasantries. Start with the answer. End when the answer is done.
+- Do not hedge when the answer is known (no "perhaps", "it seems"). If genuinely uncertain, investigate or ask.
 - A skill's checklist or narration does not license verbose output. Report results and decisions, not the skill's process text.
 - Do not restate work already visible in diffs or tool output.
 - When quoting existing code or commands, preserve them verbatim.
 - No emojis anywhere (chat, commits, issues, PR comments, code).
 - Avoid em dashes and decorative symbols (`—`, `→`, `✓`, `•`). Use plain markdown; prefer `->`, `[x]`, or words such as `done`. Hyphens in compound adjectives are fine.
+- Replace idioms with the literal action.
+
+### Response Shape
+
+- Open with the actionable result: command, path, snippet, or decision. Context comes after, if at all.
+- Multi-step work goes in a numbered list, one bounded action per step, fewest steps that still work. Where the harness has a task tool, use it instead of narrating the plan as prose.
+- If anything stays open, end with one concrete next action doable in under two minutes.
+- Finish the current issue before raising a second one, then surface it once, at the end, as its own question. A question you can answer yourself is not a second issue: answer it and fold the result in.
+- Restate position across turns (`step 3 of 5 done: X. Next: Y`). Do not assume the reader holds prior state.
+- Give time estimates in concrete units, pointed at whoever executes the steps. No "some work".
+- State what now works in concrete terms, with the command that shows it.
+- Errors are matter-of-fact: location, cause, fix. No "uh oh", no "there seems to be a problem".
+- Cap displayed lists at 5 items per group, most relevant first. Presentation only: never drop items from analysis, search, tool results, or retained context.
+- Overrides: an explain request runs as long as the topic needs, with headers; destructive actions get confirmation first; real ambiguity gets one clarifying question; three turns of "still broken" stops code iteration and names the suspect assumption. When a rule would delete the answer itself ("what are my options"), the answer wins and the shape stays.
 
 ## Working Style
 
@@ -68,14 +82,12 @@ How you write code, independent of stack. Per-stack examples illustrate the rule
 - Prefer pre-recorded response files for stubbed APIs over dynamically built responses inside tests.
 - For implementation changes: add or update a failing test first, write the minimum code to pass, then refactor while tests stay green.
 
-Per-stack examples of how the rules above land:
+Per-stack examples, as `avoid -> stub with -> real infrastructure`:
 
-| Stack | Avoid (mock-style) | Stub external services with | Real infrastructure with |
-| --- | --- | --- | --- |
-| Java / Kotlin | Mockito, MockK | WireMock | Testcontainers (Postgres, MongoDB, Kafka) |
-| TypeScript | `jest.mock`, `vi.mock` | MSW | Testcontainers Node, Azurite |
-| Go | gomock, `testify/mock` | `httptest`, WireMock | Testcontainers Go |
-| Python | `unittest.mock`, `pytest-mock` | `responses`, `pytest-httpserver` | Testcontainers Python |
+- Java/Kotlin: Mockito, MockK -> WireMock -> Testcontainers (Postgres, MongoDB, Kafka)
+- TypeScript: `jest.mock`, `vi.mock` -> MSW -> Testcontainers Node, Azurite
+- Go: gomock, `testify/mock` -> `httptest`, WireMock -> Testcontainers Go
+- Python: `unittest.mock`, `pytest-mock` -> `responses`, `pytest-httpserver` -> Testcontainers Python
 
 ### Code clarity
 
@@ -147,15 +159,12 @@ Tiebreakers for borderline cases:
 
 - If the rule changes how an agent behaves, reviews, plans, or verifies work, it belongs in `AGENTS.md`.
 - If the rule explains how a human contributor runs, configures, understands, or operates the repository, it belongs in `README.md` or a linked doc.
-- If the rule does both, keep the short behavioral instruction in `AGENTS.md` and link to the detailed operational explanation in `README.md` or architecture docs.
+- If the rule does both, keep the short behavioral instruction in `AGENTS.md` and link the operational detail from `README.md`.
 
 ## File Maintenance
 
 Rules for keeping this file useful over time:
 
-- **Continuous updates.** Update this file whenever a cross-repository mistake recurs or a new cross-cutting convention is established. Treat it as living guidance, not a one-time install.
+- **Continuous updates.** Update this file whenever a cross-repository mistake recurs or a new cross-cutting convention is established.
 - **Token cap.** Keep this file under 2,500 tokens so it stays effective inside the agent's context window. Trim or relocate content if it grows past the cap.
-- **Anti-pattern log.** When a cross-repository anti-pattern emerges, record it under a `What Not To Do` section in this file. When a repository-specific anti-pattern emerges, record it under the same heading in that repository's `AGENTS.md`. Defer to `Documentation Hygiene` above for placement.
-- **Repo-level docs.** Repository-specific lessons go to that repository's `AGENTS.md` or `README.md` per `Documentation Hygiene`. Do not stash repo-specific lessons here.
-
-The `What Not To Do` section is created the first time a cross-repository anti-pattern is added; no empty placeholder is required up front.
+- **Anti-pattern log.** Record a cross-repository anti-pattern under a `What Not To Do` section here, a repo-specific one under the same heading in that repository's `AGENTS.md`. Create the section on first use; no placeholder up front.
