@@ -10,6 +10,7 @@ CLAUDE_SKILLS_TARGET := $(CLAUDE_TARGET)/skills
 	link-skills unlink-skills relink-skills \
 	link-agents-md unlink-agents-md relink-agents-md \
 	link-all unlink-all relink-all \
+	cache-tokenizers \
 	help
 
 link-skills: ##@skills Link skills to agent discovery paths
@@ -42,6 +43,9 @@ relink-agents-md: ##@agents Relink agents markdown (update after changes)
 	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --restow agents-md
 	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --restow agents-md
 	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --restow agents-md
+
+cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
+	$(CURDIR)/skills/count-tokens/scripts/cache_tokenizers.py
 
 link-all: link-skills ##@setup Link everything
 	@make link-agents-md

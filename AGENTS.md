@@ -52,6 +52,12 @@ Run `make help` to see all available targets.
 | `make unlink-agents-md` | Remove stowed `agents-md/` symlinks from `~/.agents`, `~/.claude`, and `~/.codex` |
 | `make relink-agents-md` | Restow the `agents-md/` package after updating its files |
 
+### Token targets
+
+| Target | Description |
+|--------|-------------|
+| `make cache-tokenizers` | Pre-download the tokenizers used by the `count-tokens` skill |
+
 ### Meta targets
 
 | Target | Description |

@@ -37,3 +37,12 @@ repos:
     hooks:
       - id: committed
         stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: unittest
+        name: python unittest suite
+        entry: skills/count-tokens/scripts/run_tests.sh
+        language: system
+        pass_filenames: false
+        always_run: true
