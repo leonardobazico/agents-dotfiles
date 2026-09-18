@@ -43,9 +43,12 @@ relink-agents-md: ##@agents Relink agents markdown (update after changes)
 	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --restow agents-md
 	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --restow agents-md
 
-link-all: link-skills link-agents-md ##@setup Link everything
-unlink-all: unlink-skills unlink-agents-md ##@setup Unlink everything
-relink-all: relink-skills relink-agents-md ##@setup Relink everything (update after changes)
+link-all: link-skills ##@setup Link everything
+	@make link-agents-md
+unlink-all: unlink-skills ##@setup Unlink everything
+	@make unlink-agents-md
+relink-all: relink-skills ##@setup Relink everything (update after changes)
+	@make relink-agents-md
 
 ######################################################
 ################### help generator ###################
