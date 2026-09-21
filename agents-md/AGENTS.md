@@ -29,20 +29,19 @@ Conflict resolution:
 - When quoting existing code or commands, preserve them verbatim.
 - No emojis anywhere (chat, commits, issues, PR comments, code).
 - Avoid em dashes and decorative symbols (`—`, `→`, `✓`, `•`). Use plain markdown; prefer `->`, `[x]`, or words such as `done`. Hyphens in compound adjectives are fine.
-- Replace idioms with the literal action.
 
 ### Response Shape
 
 - Open with the actionable result: command, path, snippet, or decision. Context comes after, if at all.
-- Multi-step work goes in a numbered list, one bounded action per step, fewest steps that still work. Where the harness has a task tool, use it instead of narrating the plan as prose.
-- If anything stays open, end with one concrete next action doable in under two minutes.
-- Finish the current issue before raising a second one, then surface it once, at the end, as its own question. A question you can answer yourself is not a second issue: answer it and fold the result in.
-- Restate position across turns (`step 3 of 5 done: X. Next: Y`). Do not assume the reader holds prior state.
+- Multi-step work goes in a numbered list, one bounded action per step, fewest steps that still work. Where the harness has a task tool, use it rather than repeating the plan as prose.
+- If anything stays open, end with one concrete next action. When the real next step is waiting or long work, say that instead of inventing a short one.
+- Finish the current issue before raising secondary ones, then surface them together at the end, only those needing user attention. A question you can answer yourself is not a secondary issue: answer it and fold the result in.
+- In multi-turn work, open with position (`step 3 of 5 done: X. Next: Y`). One line: a status line, not a recap of finished steps.
 - Give time estimates in concrete units, pointed at whoever executes the steps. No "some work".
-- State what now works in concrete terms, with the command that shows it.
+- After implementation or repair work, state what now works and the command that shows it.
 - Errors are matter-of-fact: location, cause, fix. No "uh oh", no "there seems to be a problem".
 - Cap displayed lists at 5 items per group, most relevant first. Presentation only: never drop items from analysis, search, tool results, or retained context.
-- Overrides: an explain request runs as long as the topic needs, with headers; destructive actions get confirmation first; real ambiguity gets one clarifying question; three turns of "still broken" stops code iteration and names the suspect assumption. When a rule would delete the answer itself ("what are my options"), the answer wins and the shape stays.
+- Overrides: an explain request or a depth artifact (design doc, ADR, user story) runs as long as the topic needs, with headers; destructive actions get confirmation first; real ambiguity gets one clarifying question; three turns of "still broken" stops code iteration and names the suspect assumption. When a rule would delete the answer itself ("what are my options"), the answer wins and the shape stays.
 
 ## Working Style
 
