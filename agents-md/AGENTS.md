@@ -69,7 +69,7 @@ How you write code, independent of stack. Per-stack examples illustrate the rule
 - **Test-first**: write a failing test before the production code. Let the test drive the API shape.
 - **Simplicity**: prefer the simplest design that passes the tests. Three similar lines beat a premature abstraction.
 - **Leave optimization until last**: write for clarity first. Profile and optimize only when a measured constraint demands it.
-- **Incremental design**: grow the design through small, test-driven steps and refactor continuously. Avoid big up-front design.
+- **Incremental design**: grow the design through small, test-driven steps and refactor continuously. Avoid big up-front design. When restructuring, use the `refactoring` skill.
 - **DRY**: when repeating a piece of code for the third time, extract a constant, function, type, or module.
 
 ### Testing philosophy
@@ -77,9 +77,10 @@ How you write code, independent of stack. Per-stack examples illustrate the rule
 - Prefer **sociable tests** over solitary ones. A unit test should verify the behavior of a unit and its real dependencies wherever possible.
 - Follow **classical TDD**: verify observable state and behavior, not implementation details or method-call shapes.
 - Avoid mock-style verification frameworks. Mocking is a last resort for cases where real objects are impossible (clocks, random) or would produce non-deterministic tests.
+- Prefer **Nullables** over test doubles for your own infrastructure: wrap each external system in one class, give it a `createNull()` factory that disables external communication but behaves normally, and verify writes with a production-grade `trackXxx()` method rather than call assertions. Test each wrapper against the real system in narrow integration tests. Detail: the `testing-without-mocks` skill.
 - Stub external services and run real infrastructure in containers for storage and messaging dependencies.
 - Prefer pre-recorded response files for stubbed APIs over dynamically built responses inside tests.
-- For implementation changes: add or update a failing test first, write the minimum code to pass, then refactor while tests stay green.
+- For implementation changes: add or update a failing test first, write the minimum code to pass, then refactor (see the `refactoring` skill).
 
 Per-stack examples, as `avoid -> stub with -> real infrastructure`:
 
@@ -90,25 +91,35 @@ Per-stack examples, as `avoid -> stub with -> real infrastructure`:
 
 ### Code clarity
 
-- **Dependency Injection**: pass dependencies explicitly through constructors or parameters. No hidden global state or framework magic.
+- **Dependency Injection**: pass dependencies explicitly through constructors or parameters. No hidden global state or framework magic. Infrastructure classes also expose a parameterless factory with sensible defaults, so production code and `createNull()` share one construction path.
 - Default to **code as documentation**: prioritize readable structure and naming over explanatory prose.
-- Do not add doc comments or inline comments by default. Add them only when required by framework or tooling, for externally consumed APIs, or to capture a non-obvious business rule or external constraint.
-  - The doc-comment forms per stack are Javadoc and KDoc (Java/Kotlin), TSDoc or JSDoc (TypeScript), godoc (Go), docstrings (Python). The "only when required" default still applies.
 - Use **verb-phrase method names** that describe behavior.
   - Do: `uploadImage`, `validateRequiredParameters`, `findOrCreateByFileName`.
   - Avoid: `imageUpload`, `requiredParametersCheck`, `fileNameLookup`.
 - Prefer **descriptive, intention-revealing names** over flag-style names.
   - `hasAvailableCapacity` instead of `flag`.
   - `foodPictures` instead of `pictures`.
-- Instead of adding a comment, extract a variable, function, type, or module so the name self-documents intent. Tests are additional behavior documentation.
 - Avoid `else if` and cascading `if/else` chains. Prefer early returns and guard clauses to keep control flow flat.
 - Apply functional programming basics where practical: pure functions, immutability, compose small transformations, isolate side effects at boundaries.
-- Prefer short methods and small focused classes or modules (Sandi Metz style, applied pragmatically):
-  - methods stay within a single responsibility, roughly 5 to 15 lines
-  - keep parameter counts low (prefer 0 to 4; introduce a value object when more are needed)
-  - keep controllers and other presentation-layer methods thin; delegate behavior to services
+- Prefer short functions and small focused units. The names differ per stack: methods, classes, modules, packages, files (Sandi Metz rules):
+  - a function or method stays within a single responsibility, roughly 5 to 15 lines
+  - a class, module, or file holds one reason to change
+  - keep parameter counts low (prefer 0 to 4; introduce a value object or options type when more are needed)
+  - keep entry points thin (controllers, handlers, CLI commands, route functions) and delegate behavior
 
-### Test code exception
+#### Comments
+
+Default to no comment (test code excepted, see below). For every comment you are about to write, and every comment inside a unit you are already editing, pick one of three (comments elsewhere in the file are out of scope):
+
+- **Name it.** Extract a variable, function, type, or module whose name carries what the comment said. A comment restating what the code does is a rename waiting to happen.
+- **Test it.** Write a test whose name states the behavior, then delete the comment. If such a test already exists, delete the comment now.
+- **Keep it.** Only where a comment is required by framework or tooling, documents an externally consumed API, or carries what the code cannot recover on its own: an external constraint, an upstream bug or platform quirk, a non-obvious business rule, or an explicitly unverified assumption. Say why, never what.
+
+Never delete a comment carrying a constraint until a name or a test has taken over its job. When in doubt between naming and keeping, try the name first; if no name fits, the comment has earned its place. When naming and testing both fit, do both: the name goes in the code, the rule goes in a test name.
+
+Doc-comment forms per stack: Javadoc and KDoc (Java/Kotlin), TSDoc or JSDoc (TypeScript), godoc (Go), docstrings (Python). The default above still governs when to write one.
+
+#### Test code exception
 
 - `// Arrange`, `// Act`, `// Assert` comments are allowed in test code to structure cases.
 - DRY applies less strictly in tests. Some duplication is acceptable to keep each test readable in isolation. Tests exist to drive application design, not the other way around. Do not over-optimize test code at the cost of test clarity.
@@ -165,5 +176,5 @@ Tiebreakers for borderline cases:
 Rules for keeping this file useful over time:
 
 - **Continuous updates.** Update this file whenever a cross-repository mistake recurs or a new cross-cutting convention is established.
-- **Token cap.** Keep this file under 2,500 tokens so it stays effective inside the agent's context window. Trim or relocate content if it grows past the cap.
+- **Token cap.** Keep this file under 3,000 tokens so it stays effective inside the agent's context window. Trim or relocate content if it grows past the cap.
 - **Anti-pattern log.** Record a cross-repository anti-pattern under a `What Not To Do` section here, a repo-specific one under the same heading in that repository's `AGENTS.md`. Create the section on first use; no placeholder up front.
