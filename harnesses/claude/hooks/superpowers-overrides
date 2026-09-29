@@ -1,25 +1,39 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 overrides_file="$script_dir/../superpowers-overrides.md"
 
-[ -f "$overrides_file" ] || exit 0
+start_session_without_overrides() {
+	exit 0
+}
 
-python3 -c '
+build_session_start_payload() {
+	python3 -c '
 import json, sys
 
-with open(sys.argv[1], encoding="utf-8") as handle:
-    text = handle.read()
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        text = handle.read()
+except (OSError, UnicodeDecodeError):
+    sys.exit(1)
 
-json.dump(
-    {
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": text,
+sys.stdout.write(
+    json.dumps(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": text,
+            }
         }
-    },
-    sys.stdout,
+    )
 )
-sys.stdout.write("\n")
-' "$overrides_file"
+' "$1" 2>/dev/null
+}
+
+[ -f "$overrides_file" ] || start_session_without_overrides
+command -v python3 >/dev/null 2>&1 || start_session_without_overrides
+
+payload="$(build_session_start_payload "$overrides_file")" || start_session_without_overrides
+
+printf '%s\n' "$payload"

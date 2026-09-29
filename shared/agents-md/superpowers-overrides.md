@@ -5,7 +5,7 @@ Superpowers skills are process defaults. This user's instructions outrank them.
 Precedence, highest first:
 
 1. The repository's own `AGENTS.md`
-2. This user's `AGENTS.md` (`~/.claude/AGENTS.md`)
+2. This user's default `AGENTS.md`, installed beside this file (`~/.agents`, `~/.claude`, `~/.codex`)
 3. Any superpowers skill
 
 The superpowers `using-superpowers` skill states this itself, under `User Instructions`: "User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take precedence over skills". This file names the specific points where that applies.

@@ -43,9 +43,9 @@ else
 	fail "real file is backed up"
 fi
 
-# Case 3: a symlink already resolving into the repo is left alone.
+# Case 3: a symlink already pointing at this package's file is left alone.
 new_case
-ln -s "$repo_root/Makefile" "$target/settings.json"
+ln -s "$pkg/settings.json" "$target/settings.json"
 if "$adopt" "$pkg" "$target" >/dev/null 2>&1 \
 	&& [ -L "$target/settings.json" ] \
 	&& [ ! -e "$target/settings.json.bak" ]; then
@@ -102,14 +102,14 @@ fi
 
 # Review Focus 3: ownership is decided on the fully resolved path.
 new_case
-ln -s "$repo_root" "$work/alias"
-ln -s "$work/alias/Makefile" "$target/settings.json"
+ln -s "$pkg" "$work/alias"
+ln -s "$work/alias/settings.json" "$target/settings.json"
 if "$adopt" "$pkg" "$target" >/dev/null 2>&1 \
 	&& [ -L "$target/settings.json" ] \
 	&& [ ! -e "$target/settings.json.bak" ]; then
-	pass "multi-hop symlink into the repo is left alone"
+	pass "multi-hop symlink to the package file is left alone"
 else
-	fail "multi-hop symlink into the repo is left alone"
+	fail "multi-hop symlink to the package file is left alone"
 fi
 
 # A missing package directory is refused.
@@ -149,16 +149,30 @@ else
 	fail "a refusal leaves every other file untouched"
 fi
 
-# Ownership is decided against the physical repo root, not the logical one.
+# Ownership is decided against the package's own physical path, so the package
+# directory may itself be reached through a symlink.
 new_case
-ln -s "$repo_root" "$work/alias"
-ln -s "$repo_root/Makefile" "$target/settings.json"
-if "$work/alias/scripts/adopt-harness.sh" "$pkg" "$target" >/dev/null 2>&1 \
+ln -s "$pkg" "$work/alias"
+ln -s "$pkg/settings.json" "$target/settings.json"
+if "$adopt" "$work/alias" "$target" >/dev/null 2>&1 \
 	&& [ -L "$target/settings.json" ] \
 	&& [ ! -e "$target/settings.json.bak" ]; then
-	pass "reached through a symlinked repo path, an adopted link is still recognised"
+	pass "a symlinked package path still recognises an adopted link"
 else
-	fail "reached through a symlinked repo path, an adopted link is still recognised"
+	fail "a symlinked package path still recognises an adopted link"
+fi
+
+# Minor 4: a symlink into the repo that is not this package's file is refused
+# here rather than becoming a stow conflict one step later.
+new_case
+ln -s "$repo_root/Makefile" "$target/settings.json"
+"$adopt" "$pkg" "$target" >/dev/null 2>&1
+if [ $? -ne 0 ] \
+	&& [ -L "$target/settings.json" ] \
+	&& [ ! -e "$target/settings.json.bak" ]; then
+	pass "a symlink to the wrong repo file is refused"
+else
+	fail "a symlink to the wrong repo file is refused"
 fi
 
 if [ "$failures" -ne 0 ]; then

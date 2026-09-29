@@ -51,9 +51,10 @@ link-harnesses: ##@harness Link every per-harness config package
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --stow $(h) && ) true
 
-unlink-harnesses: ##@harness Unlink every per-harness config package
+unlink-harnesses: ##@harness Unlink every per-harness config package and restore backups
 	@$(foreach h,$(HARNESSES), \
-		stow --verbose --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && ) true
+		stow --verbose --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && \
+		$(CURDIR)/scripts/restore-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
 
 relink-harnesses: ##@harness Relink every per-harness config package
 	@$(foreach h,$(HARNESSES), \

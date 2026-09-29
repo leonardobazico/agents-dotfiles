@@ -4,8 +4,6 @@ set -euo pipefail
 package_dir="${1:?usage: adopt-harness.sh <package_dir> <target_dir>}"
 target_dir="${2:?usage: adopt-harness.sh <package_dir> <target_dir>}"
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-
 if [ ! -d "$package_dir" ]; then
 	echo "adopt-harness: no such package: $package_dir" >&2
 	exit 1
@@ -17,6 +15,7 @@ resolve() {
 
 classify() {
 	local live="$1"
+	local owned="$2"
 
 	if [ ! -L "$live" ] && [ ! -e "$live" ]; then
 		echo skip
@@ -26,10 +25,11 @@ classify() {
 	if [ -L "$live" ]; then
 		local resolved
 		resolved="$(resolve "$live")"
-		case "$resolved" in
-			"$repo_root"/*) echo skip ;;
-			*) echo "refuse $live is a symlink to $resolved, outside $repo_root" ;;
-		esac
+		if [ "$resolved" = "$owned" ]; then
+			echo skip
+		else
+			echo "refuse $live is a symlink to $resolved, not to $owned"
+		fi
 		return
 	fi
 
@@ -43,7 +43,7 @@ classify() {
 
 adoptable=()
 while IFS= read -r rel; do
-	verdict="$(classify "$target_dir/$rel")"
+	verdict="$(classify "$target_dir/$rel" "$(resolve "$package_dir/$rel")")"
 	case "$verdict" in
 		skip) ;;
 		adopt) adoptable+=("$target_dir/$rel") ;;

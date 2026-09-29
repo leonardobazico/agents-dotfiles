@@ -151,12 +151,21 @@ in the package it inspects the live path and branches:
 |--------------|--------|
 | Absent | Nothing; stow creates the link |
 | A real file | Moved to `<name>.bak`, then stowed |
-| A symlink resolving into this repo | Left alone; already adopted |
+| A symlink resolving to this package's own file | Left alone; already adopted |
 | Anything else | Fails loudly and changes nothing |
+
+Ownership is the package file itself, not the repository. A symlink to some other
+file in this repo is refused here with a message naming both paths, rather than
+surviving adoption and failing as a stow conflict a step later.
 
 An existing `.bak` is never overwritten. If one is present while the live path is
 still a real file, the target fails, because the older backup is the true
 pre-migration state.
+
+`make unlink-harnesses` reverses the migration: it unstows, then calls
+`scripts/restore-harness.sh` to move each `<name>.bak` back to its live path. A
+live path that something else already occupies keeps its `.bak`, and the script
+says so on stderr instead of overwriting.
 
 A harness package holds only what encodes that tool's own contract: its config schema,
 its hook protocol. Content that any harness would use byte for byte stays in `shared/`.

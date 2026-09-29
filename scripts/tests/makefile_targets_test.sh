@@ -18,6 +18,15 @@ for target in link-harnesses relink-harnesses; do
 	fi
 done
 
+# Unstowing must hand the machine back its pre-migration files, or the harness
+# silently falls back to its defaults.
+plan="$(make -C "$repo_root" -n unlink-harnesses HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
+if printf '%s' "$plan" | grep -q 'restore-harness.sh'; then
+	pass "unlink-harnesses restores backups after unstowing"
+else
+	fail "unlink-harnesses restores backups after unstowing"
+fi
+
 # A dry run of the meta targets must expand the recipes it delegates to, so the
 # commands can be inspected before any of them run.
 plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"

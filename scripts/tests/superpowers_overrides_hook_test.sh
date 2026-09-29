@@ -57,6 +57,28 @@ else
 	fail "exits 0 silently when the markdown is missing"
 fi
 
+# Minor 3: a missing python3 must not surface a traceback at session start.
+printf '# Overrides\n' > "$work/superpowers-overrides.md"
+mkdir -p "$work/bin"
+ln -sf "$(command -v dirname)" "$work/bin/dirname"
+out="$(PATH="$work/bin" "$BASH" "$work/hooks/superpowers-overrides" 2>/dev/null)"
+status=$?
+if [ $status -eq 0 ] && [ -z "$out" ]; then
+	pass "exits 0 silently when python3 is unavailable"
+else
+	fail "exits 0 silently when python3 is unavailable"
+fi
+
+# Minor 3: markdown that is not valid UTF-8 degrades instead of erroring.
+printf '# Overrides\n\xff\xfe not utf-8\n' > "$work/superpowers-overrides.md"
+out="$("$work/hooks/superpowers-overrides" 2>/dev/null)"
+status=$?
+if [ $status -eq 0 ] && [ -z "$out" ]; then
+	pass "exits 0 silently when the markdown is not valid UTF-8"
+else
+	fail "exits 0 silently when the markdown is not valid UTF-8"
+fi
+
 if [ "$failures" -ne 0 ]; then
 	echo "$failures failure(s)"
 	exit 1
