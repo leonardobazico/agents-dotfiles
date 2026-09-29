@@ -8,21 +8,29 @@ AI agent workflow dotfiles managed via GNU Stow. This repo stores custom skills 
 
 ```
 agents-dotfiles/
-├── AGENTS.md         — This file (repo maintenance guide)
-├── Makefile          — GNU Stow-based distribution targets for skills and agent config files
-├── agents-md/        — Stow package for default agent instruction files
-│   ├── AGENTS.md     — Canonical default agent instructions
-│   └── CLAUDE.md     — Symlink alias to `AGENTS.md`
-├── skills/           — Custom agent skills (source of truth)
-│   └── <skill-name>/
-│       ├── SKILL.md  — Skill instructions (required)
-│       └── ...       — Supporting files (optional)
-├── templates/        — Prompt templates (not stowed, referenced by absolute path)
+├── AGENTS.md         - This file (repo maintenance guide)
+├── Makefile          - GNU Stow-based distribution targets
+├── scripts/          - Helper scripts called by the Makefile
+├── shared/           - Packages stowed to many targets
+│   ├── agents-md/    - Default agent instruction files
+│   │   ├── AGENTS.md - Canonical default agent instructions
+│   │   └── CLAUDE.md - Symlink alias to `AGENTS.md`
+│   └── skills/       - Custom agent skills (source of truth)
+│       └── <skill-name>/
+│           ├── SKILL.md  - Skill instructions (required)
+│           └── ...       - Supporting files (optional)
+├── harnesses/        - Packages stowed to exactly one target each
+│   └── <harness>/
+├── templates/        - Prompt templates (not stowed, referenced by absolute path)
 │   └── *.md
 └── docs/
-    ├── plans/        — Implementation plans
-    └── specs/        — Design specifications
+    ├── plans/        - Implementation plans
+    └── specs/        - Design specifications
 ```
+
+Packages are grouped by how they are distributed. `shared/` holds content that is
+byte-identical across harnesses and fans out to several target directories.
+`harnesses/<name>/` holds config unique to one tool and stows to exactly one target.
 
 ## Prerequisites
 
@@ -34,37 +42,11 @@ This is a trunk-based project. Work directly on `main` unless a task explicitly 
 
 ## Makefile Usage
 
-Run `make help` to see all available targets.
+Run `make help` for the current list of targets, grouped by area. It is generated from
+the Makefile itself, so it never drifts. Do not restate the target list here.
 
-### Skills targets
-
-| Target | Description |
-|--------|-------------|
-| `make link-skills` | Stow skills to `~/.agents/skills/` and `~/.claude/skills/` |
-| `make unlink-skills` | Remove stowed skill symlinks |
-| `make relink-skills` | Restow skills (run after adding/removing skills) |
-
-### Agent config targets
-
-| Target | Description |
-|--------|-------------|
-| `make link-agents-md` | Stow the `agents-md/` package to `~/.agents`, `~/.claude`, and `~/.codex` |
-| `make unlink-agents-md` | Remove stowed `agents-md/` symlinks from `~/.agents`, `~/.claude`, and `~/.codex` |
-| `make relink-agents-md` | Restow the `agents-md/` package after updating its files |
-
-### Token targets
-
-| Target | Description |
-|--------|-------------|
-| `make cache-tokenizers` | Pre-download the tokenizers used by the `count-tokens` skill |
-
-### Meta targets
-
-| Target | Description |
-|--------|-------------|
-| `make link-all` | Run all link targets |
-| `make unlink-all` | Run all unlink targets |
-| `make relink-all` | Run all relink targets |
+Adding a harness costs a directory plus two Makefile variables, with no new recipe:
+append the name to `HARNESSES` and define `TARGET_<name>`.
 
 ## Pre-Commit
 
@@ -86,10 +68,14 @@ Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note th
 
 ## Adding a New Skill
 
-1. Create a directory in `skills/` with a lowercase, hyphenated name:
+Invoke the `superpowers:writing-skills` skill first. It governs how a skill is written,
+edited, and verified before deployment. The steps below are the repo-specific wrapper
+around it: where the directory goes and how it reaches the discovery paths.
+
+1. Create a directory in `shared/skills/` with a lowercase, hyphenated name:
 
    ```
-   mkdir -p skills/my-new-skill
+   mkdir -p shared/skills/my-new-skill
    ```
 
 2. Add a `SKILL.md` with required YAML frontmatter:
@@ -111,7 +97,7 @@ Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note th
 
 ## Skill Writing Standards
 
-Skill and template content (`SKILL.md`, `skills/templates/*.md`) is a prompt an agent executes, not documentation a human reads once. Keep it:
+Skill and template content (`SKILL.md`, `shared/skills/templates/*.md`) is a prompt an agent executes, not documentation a human reads once. Keep it:
 
 - **Concise**: state each rule once. Do not restate a rule already covered by an earlier section or a shared vocabulary list.
 - **Unambiguous**: pin every term to one concrete definition (exact trigger conditions, exact tag/field names). Avoid "usually", "generally", "as needed" where a rule must hold every time.
@@ -123,8 +109,8 @@ When a skill grows through iteration, re-read it for duplicated phrasing before 
 
 ## Agent Config Distribution
 
-- `agents-md/AGENTS.md` is the canonical source for installed default agent instructions.
-- `agents-md/CLAUDE.md` is a symlink alias to `AGENTS.md`.
+- `shared/agents-md/AGENTS.md` is the canonical source for installed default agent instructions.
+- `shared/agents-md/CLAUDE.md` is a symlink alias to `AGENTS.md`.
 - `make link-agents-md` stows this package to `~/.agents`, `~/.claude`, and `~/.codex`.
 - `make unlink-agents-md` removes those symlinks.
 - `make relink-agents-md` refreshes those symlinks after edits.
@@ -135,14 +121,14 @@ This is separate from the repo-root `AGENTS.md` and `CLAUDE.md`, where `CLAUDE.m
 
 Skills are distributed to two paths via GNU Stow:
 
-- **`~/.agents/skills/`** — Discovered by OpenCode, GitHub Copilot CLI, OpenAI Codex CLI, and Google Gemini CLI.
-- **`~/.claude/skills/`** — Discovered by Claude Code (also by OpenCode and Copilot as a secondary path).
+- **`~/.agents/skills/`**: Discovered by OpenCode, GitHub Copilot CLI, OpenAI Codex CLI, and Google Gemini CLI.
+- **`~/.claude/skills/`**: Discovered by Claude Code (also by OpenCode and Copilot as a secondary path).
 
-Each skill directory in `skills/` becomes a symlink at the target paths. For example:
+Each skill directory in `shared/skills/` becomes a symlink at the target paths. For example:
 
 ```
-~/.agents/skills/ask-agents-for-feedback -> <repo>/skills/ask-agents-for-feedback
-~/.claude/skills/ask-agents-for-feedback -> <repo>/skills/ask-agents-for-feedback
+~/.agents/skills/ask-agents-for-feedback -> <repo>/shared/skills/ask-agents-for-feedback
+~/.claude/skills/ask-agents-for-feedback -> <repo>/shared/skills/ask-agents-for-feedback
 ```
 
 Templates in `templates/` are not stowed. Reference them by absolute path (`/Users/<user>/agents-dotfiles/templates/...`).
