@@ -158,6 +158,17 @@ An existing `.bak` is never overwritten. If one is present while the live path i
 still a real file, the target fails, because the older backup is the true
 pre-migration state.
 
+A harness package holds only what encodes that tool's own contract: its config schema,
+its hook protocol. Content that any harness would use byte for byte stays in `shared/`.
+`superpowers-overrides.md` ships from `shared/agents-md` for that reason, while the
+SessionStart hook that injects it stays in `harnesses/claude`, because the JSON envelope
+it emits is Claude Code's. The two are siblings only after stowing, since both packages
+land in `~/.claude`; in this repo they sit in different directories.
+
+When a file moves between packages, restow the package losing it before the one gaining
+it. Stow will not create a link over a path another package still owns, and the losing
+package's restow then removes what the gaining one could not place.
+
 These config files are live. Claude Code writes through the symlink whenever
 `/config` runs or a plugin is toggled, so those writes appear as a diff in this
 repo. That is the point of versioning them. Secrets never belong here:

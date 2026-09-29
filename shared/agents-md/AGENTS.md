@@ -179,7 +179,7 @@ Precedence: repository `AGENTS.md`, then this file, then any superpowers skill.
 - Never commit a spec, plan, or working file a superpowers skill produced unless explicitly asked.
 - Every superpowers subagent dispatch carries the governing `AGENTS.md` rules and relevant local skill names in its prompt.
 - A skill's own formatting licenses nothing: no emoji, no em dashes, no decorative symbols in output.
-- Detail: `~/.claude/superpowers-overrides.md`.
+- Detail: `superpowers-overrides.md`, beside this file.
 
 ## File Maintenance
 
