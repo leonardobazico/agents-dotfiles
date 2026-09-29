@@ -1,58 +1,75 @@
-STOW_DIR := $(CURDIR)
-AGENTS_TARGET := $(HOME)/.agents
-CLAUDE_TARGET := $(HOME)/.claude
-CODEX_TARGET := $(HOME)/.codex
-AGENTS_SKILLS_TARGET := $(AGENTS_TARGET)/skills
-CLAUDE_SKILLS_TARGET := $(CLAUDE_TARGET)/skills
+SHARED_DIR  := $(CURDIR)
+HARNESS_DIR := $(CURDIR)/harnesses
+
+AGENTS_MD_TARGETS := $(HOME)/.agents $(HOME)/.claude $(HOME)/.codex
+SKILLS_TARGETS    := $(HOME)/.agents/skills $(HOME)/.claude/skills
+
+HARNESSES :=
 
 .DEFAULT_GOAL := help
 .PHONY: \
 	link-skills unlink-skills relink-skills \
 	link-agents-md unlink-agents-md relink-agents-md \
+	link-harnesses unlink-harnesses relink-harnesses \
 	link-all unlink-all relink-all \
 	cache-tokenizers \
 	help
 
 link-skills: ##@skills Link skills to agent discovery paths
-	@mkdir -p $(AGENTS_SKILLS_TARGET) $(CLAUDE_SKILLS_TARGET)
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_SKILLS_TARGET) --stow skills
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_SKILLS_TARGET) --stow skills
+	@$(foreach t,$(SKILLS_TARGETS), \
+		mkdir -p $(t) && \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --stow skills && ) true
 
 unlink-skills: ##@skills Unlink skills from agent discovery paths
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_SKILLS_TARGET) --delete skills
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_SKILLS_TARGET) --delete skills
+	@$(foreach t,$(SKILLS_TARGETS), \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --delete skills && ) true
 
 relink-skills: ##@skills Relink skills (update after changes)
-	@mkdir -p $(AGENTS_SKILLS_TARGET) $(CLAUDE_SKILLS_TARGET)
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_SKILLS_TARGET) --restow skills
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_SKILLS_TARGET) --restow skills
+	@$(foreach t,$(SKILLS_TARGETS), \
+		mkdir -p $(t) && \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --restow skills && ) true
 
 link-agents-md: ##@agents Link agents markdown to agent discovery paths
-	@mkdir -p $(AGENTS_TARGET) $(CLAUDE_TARGET) $(CODEX_TARGET)
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --stow agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --stow agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --stow agents-md
+	@$(foreach t,$(AGENTS_MD_TARGETS), \
+		mkdir -p $(t) && \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --stow agents-md && ) true
 
 unlink-agents-md: ##@agents Unlink agents markdown from agent discovery paths
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --delete agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --delete agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --delete agents-md
+	@$(foreach t,$(AGENTS_MD_TARGETS), \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --delete agents-md && ) true
 
 relink-agents-md: ##@agents Relink agents markdown (update after changes)
-	@mkdir -p $(AGENTS_TARGET) $(CLAUDE_TARGET) $(CODEX_TARGET)
-	stow --verbose --dir=$(STOW_DIR) --target=$(AGENTS_TARGET) --restow agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CLAUDE_TARGET) --restow agents-md
-	stow --verbose --dir=$(STOW_DIR) --target=$(CODEX_TARGET) --restow agents-md
+	@$(foreach t,$(AGENTS_MD_TARGETS), \
+		mkdir -p $(t) && \
+		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --restow agents-md && ) true
+
+link-harnesses: ##@harness Link every per-harness config package
+	@$(foreach h,$(HARNESSES), \
+		mkdir -p $(TARGET_$(h)) && \
+		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
+		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --stow $(h) && ) true
+
+unlink-harnesses: ##@harness Unlink every per-harness config package
+	@$(foreach h,$(HARNESSES), \
+		stow --verbose --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && ) true
+
+relink-harnesses: ##@harness Relink every per-harness config package
+	@$(foreach h,$(HARNESSES), \
+		mkdir -p $(TARGET_$(h)) && \
+		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(CURDIR)/skills/count-tokens/scripts/cache_tokenizers.py
 
 link-all: link-skills ##@setup Link everything
 	@make link-agents-md
+	@make link-harnesses
 unlink-all: unlink-skills ##@setup Unlink everything
+	@make unlink-harnesses
 	@make unlink-agents-md
 relink-all: relink-skills ##@setup Relink everything (update after changes)
 	@make relink-agents-md
+	@make relink-harnesses
 
 ######################################################
 ################### help generator ###################
