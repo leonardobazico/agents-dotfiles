@@ -171,6 +171,16 @@ Tiebreakers for borderline cases:
 - If the rule explains how a human contributor runs, configures, understands, or operates the repository, it belongs in `README.md` or a linked doc.
 - If the rule does both, keep the short behavioral instruction in `AGENTS.md` and link the operational detail from `README.md`.
 
+## Superpowers Overrides
+
+Precedence: repository `AGENTS.md`, then this file, then any superpowers skill.
+
+- Testing follows `Testing philosophy` and the `testing-without-mocks` skill, not superpowers' mocking guidance.
+- Never commit a spec, plan, or working file a superpowers skill produced unless explicitly asked.
+- Every superpowers subagent dispatch carries the governing `AGENTS.md` rules and relevant local skill names in its prompt.
+- A skill's own formatting licenses nothing: no emoji, no em dashes, no decorative symbols in output.
+- Detail: `~/.claude/superpowers-overrides.md`.
+
 ## File Maintenance
 
 Rules for keeping this file useful over time:
