@@ -4,7 +4,8 @@ HARNESS_DIR := $(CURDIR)/harnesses
 AGENTS_MD_TARGETS := $(HOME)/.agents $(HOME)/.claude $(HOME)/.codex
 SKILLS_TARGETS    := $(HOME)/.agents/skills $(HOME)/.claude/skills
 
-HARNESSES :=
+HARNESSES     := claude
+TARGET_claude := $(HOME)/.claude
 
 .DEFAULT_GOAL := help
 .PHONY: \

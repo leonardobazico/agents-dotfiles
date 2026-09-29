@@ -10,3 +10,7 @@ coverage
 __pycache__/
 *.py[cod]
 .superpowers/
+harnesses/claude/settings.local.json
+.claude/settings.local.json
+.claude/worktrees/
+.opencode/
