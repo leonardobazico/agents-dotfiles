@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+overrides_file="$script_dir/../superpowers-overrides.md"
+
+[ -f "$overrides_file" ] || exit 0
+
+python3 -c '
+import json, sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    text = handle.read()
+
+json.dump(
+    {
+        "hookSpecificOutput": {
+            "hookEventName": "SessionStart",
+            "additionalContext": text,
+        }
+    },
+    sys.stdout,
+)
+sys.stdout.write("\n")
+' "$overrides_file"
