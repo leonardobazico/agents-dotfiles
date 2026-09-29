@@ -1,3 +1,6 @@
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -5,8 +8,10 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
         exclude: (^|/)templates/.*\.md$
+        stages: [pre-commit]
       - id: end-of-file-fixer
         exclude: (^|/)templates/.*\.md$
+        stages: [pre-commit]
       - id: mixed-line-ending
         args: [--fix=lf]
         exclude: (^|/)templates/.*\.md$
@@ -52,3 +57,18 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      - id: gitleaks-staged
+        name: gitleaks (staged changes)
+        entry: gitleaks git --staged --no-banner
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: gitleaks-history
+        name: gitleaks (full history)
+        entry: gitleaks git --no-banner
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

@@ -50,11 +50,20 @@ append the name to `HARNESSES` and define `TARGET_<name>`.
 
 ## Pre-Commit
 
-Install `pre-commit` with your preferred Python tool, then enable the hook:
+Install `pre-commit` with your preferred Python tool, then enable the hooks:
 
 ```bash
-pre-commit install
+pre-commit install --install-hooks
 ```
+
+That wires three stages, named by `default_install_hook_types`: `pre-commit` for the
+formatters, linters, and test suites, `commit-msg` for the conventional-commit check,
+and `pre-push` for a full-history secret scan.
+
+Secret scanning runs at repo level rather than relying on a machine-global git hook, so
+a fresh clone is protected: `gitleaks git --staged --no-banner` on every commit and
+`gitleaks git --no-banner` over the whole history on every push. Install `gitleaks`
+(`brew install gitleaks`) or both hooks fail.
 
 Run the full repo pass when you first set it up or need to recheck everything:
 
