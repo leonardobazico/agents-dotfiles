@@ -121,6 +121,46 @@ else
 	fail "missing package is refused"
 fi
 
+# A dangling backup symlink still counts as an existing backup.
+new_case
+printf 'live\n' > "$target/settings.json"
+ln -s "$work/gone" "$target/settings.json.bak"
+"$adopt" "$pkg" "$target" >/dev/null 2>&1
+if [ $? -ne 0 ] \
+	&& [ -L "$target/settings.json.bak" ] \
+	&& [ "$(cat "$target/settings.json")" = "live" ]; then
+	pass "dangling backup is not overwritten"
+else
+	fail "dangling backup is not overwritten"
+fi
+
+# A refusal anywhere in the package moves nothing at all (all-or-nothing).
+new_case
+printf 'live\n' > "$target/settings.json"
+mkdir -p "$target/hooks"
+ln -s /etc/hosts "$target/hooks/run"
+"$adopt" "$pkg" "$target" >/dev/null 2>&1
+if [ $? -ne 0 ] \
+	&& [ -f "$target/settings.json" ] \
+	&& [ "$(cat "$target/settings.json")" = "live" ] \
+	&& [ ! -e "$target/settings.json.bak" ]; then
+	pass "a refusal leaves every other file untouched"
+else
+	fail "a refusal leaves every other file untouched"
+fi
+
+# Ownership is decided against the physical repo root, not the logical one.
+new_case
+ln -s "$repo_root" "$work/alias"
+ln -s "$repo_root/Makefile" "$target/settings.json"
+if "$work/alias/scripts/adopt-harness.sh" "$pkg" "$target" >/dev/null 2>&1 \
+	&& [ -L "$target/settings.json" ] \
+	&& [ ! -e "$target/settings.json.bak" ]; then
+	pass "reached through a symlinked repo path, an adopted link is still recognised"
+else
+	fail "reached through a symlinked repo path, an adopted link is still recognised"
+fi
+
 if [ "$failures" -ne 0 ]; then
 	echo "$failures failure(s)"
 	exit 1

@@ -58,20 +58,21 @@ unlink-harnesses: ##@harness Unlink every per-harness config package
 relink-harnesses: ##@harness Relink every per-harness config package
 	@$(foreach h,$(HARNESSES), \
 		mkdir -p $(TARGET_$(h)) && \
+		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py
 
 link-all: link-skills ##@setup Link everything
-	@make link-agents-md
-	@make link-harnesses
+	@$(MAKE) link-agents-md
+	@$(MAKE) link-harnesses
 unlink-all: unlink-skills ##@setup Unlink everything
-	@make unlink-harnesses
-	@make unlink-agents-md
+	@$(MAKE) unlink-harnesses
+	@$(MAKE) unlink-agents-md
 relink-all: relink-skills ##@setup Relink everything (update after changes)
-	@make relink-agents-md
-	@make relink-harnesses
+	@$(MAKE) relink-agents-md
+	@$(MAKE) relink-harnesses
 
 ######################################################
 ################### help generator ###################
