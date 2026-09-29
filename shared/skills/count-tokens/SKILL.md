@@ -11,7 +11,7 @@ Estimating tokens from character or word count is unreliable: on mixed content t
 ## Usage
 
 ```bash
-skills/count-tokens/scripts/count_tokens.py <path>...
+shared/skills/count-tokens/scripts/count_tokens.py <path>...
 ```
 
 `uv` resolves dependencies on first run. No setup step.

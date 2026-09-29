@@ -27,7 +27,7 @@ Measured against that reference, every built-in tokenizer in this skill reads
 
 Method: each corpus was encoded with every tokenizer in one pass, special tokens
 disabled, and each deviation is `count / reference - 1`. The corpora were this repository's
-`agents-md/AGENTS.md` (markdown with tables), its `Makefile` (config), and a short Python
+`shared/agents-md/AGENTS.md` (markdown with tables), its `Makefile` (config), and a short Python
 script. Absolute counts come from a fixed sample taken when this skill was written, not from
 live repository files; those files change, the deviation pattern does not. The percentages
 are the finding, not the raw numbers.
@@ -80,7 +80,7 @@ This caches the built-in tokenizers into `~/.cache/huggingface`. Pass extra repo
 cache those too:
 
 ```bash
-skills/count-tokens/scripts/cache_tokenizers.py Qwen/Qwen2.5-7B
+shared/skills/count-tokens/scripts/cache_tokenizers.py Qwen/Qwen2.5-7B
 ```
 
 Once cached, `HF_HUB_OFFLINE=1` works for every level.
@@ -88,7 +88,7 @@ Once cached, `HF_HUB_OFFLINE=1` works for every level.
 ## Testing
 
 ```bash
-skills/count-tokens/scripts/run_tests.sh
+shared/skills/count-tokens/scripts/run_tests.sh
 ```
 
 Runs the `unittest` suite in `scripts/tests/` via `uv run`, with `tiktoken` and

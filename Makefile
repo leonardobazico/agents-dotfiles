@@ -1,4 +1,4 @@
-SHARED_DIR  := $(CURDIR)
+SHARED_DIR  := $(CURDIR)/shared
 HARNESS_DIR := $(CURDIR)/harnesses
 
 AGENTS_MD_TARGETS := $(HOME)/.agents $(HOME)/.claude $(HOME)/.codex
@@ -59,7 +59,7 @@ relink-harnesses: ##@harness Relink every per-harness config package
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
-	$(CURDIR)/skills/count-tokens/scripts/cache_tokenizers.py
+	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py
 
 link-all: link-skills ##@setup Link everything
 	@make link-agents-md
