@@ -64,6 +64,9 @@ pre-commit run --all-files
 
 Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-formatted, in this initial setup.
 
+Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh`
+(Python) and `scripts/run_tests.sh` (shell).
+
 Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g. `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
 
 ## Adding a New Skill
@@ -116,6 +119,42 @@ When a skill grows through iteration, re-read it for duplicated phrasing before 
 - `make relink-agents-md` refreshes those symlinks after edits.
 
 This is separate from the repo-root `AGENTS.md` and `CLAUDE.md`, where `CLAUDE.md` remains a symlink that follows `AGENTS.md`.
+
+## Harness Config Distribution
+
+Each `harnesses/<name>/` package stows to exactly one target:
+
+| Package | Target |
+|---------|--------|
+| `harnesses/claude` | `~/.claude` |
+| `harnesses/opencode` | `~/.config/opencode` |
+
+Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`,
+not `~/.opencode`. Every harness stow runs with `--no-folding`, so a directory the
+harness manages stays a real directory in the target rather than becoming a symlink
+into this repo. Without it, stow folds `~/.claude/hooks` into a single link, and a
+hook added there by another tool would land inside this working tree.
+
+`make link-harnesses` calls `scripts/adopt-harness.sh` before stowing. For each file
+in the package it inspects the live path and branches:
+
+| Live path is | Action |
+|--------------|--------|
+| Absent | Nothing; stow creates the link |
+| A real file | Moved to `<name>.bak`, then stowed |
+| A symlink resolving into this repo | Left alone; already adopted |
+| Anything else | Fails loudly and changes nothing |
+
+An existing `.bak` is never overwritten. If one is present while the live path is
+still a real file, the target fails, because the older backup is the true
+pre-migration state.
+
+These config files are live. Claude Code writes through the symlink whenever
+`/config` runs or a plugin is toggled, so those writes appear as a diff in this
+repo. That is the point of versioning them. Secrets never belong here:
+`~/.claude/settings.local.json` stays unmanaged and machine-local, and
+`harnesses/claude/settings.local.json` is gitignored so a stray copy cannot be
+committed.
 
 ## Skills Distribution
 
