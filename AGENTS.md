@@ -137,12 +137,19 @@ Each `harnesses/<name>/` package stows to exactly one target:
 |---------|--------|
 | `harnesses/claude` | `~/.claude` |
 | `harnesses/opencode` | `~/.config/opencode` |
+| `harnesses/codex` | `~/.codex` |
 
 Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`,
 not `~/.opencode`. Every harness stow runs with `--no-folding`, so a directory the
 harness manages stays a real directory in the target rather than becoming a symlink
 into this repo. Without it, stow folds `~/.claude/hooks` into a single link, and a
 hook added there by another tool would land inside this working tree.
+
+Harness `tests/` directories and `run_tests.sh` runners are repository-only.
+Stow ignores them; `scripts/list-harness-files.sh` applies the same exclusions
+to adoption and restoration. Codex hook tests live beside the adapter at
+`harnesses/codex/hooks/tests/test_rtk.py`; run
+`bash harnesses/codex/hooks/run_tests.sh`. The shell suite delegates to that runner.
 
 `make link-harnesses` calls `scripts/adopt-harness.sh` before stowing. For each file
 in the package it inspects the live path and branches:
@@ -215,10 +222,16 @@ manual restoration: `unlink-harnesses` only restores the exact `.bak` name.
 Teardown fails if rtk is absent; reinstall rtk first.
 
 `rtk init --global --codex` is never run. Codex supports command hooks, but
-this intermediate setup covers it through shared instructions. Additionally,
+rtk's Codex init only writes an `@RTK.md` reference. Instead, `harnesses/codex`
+stows `hooks.json` and `hooks/rtk.py`; its Bash hook delegates to `rtk hook claude`
+and adds an allow decision only when a rewrite lacks one. Explicit decisions
+are preserved; malformed JSON fails with a diagnostic and no response.
+The hook resolves its adapter through `${CODEX_HOME:-$HOME/.codex}` and needs
+interactive trust approval. Linking does not bypass that approval.
+
 `codex debug prompt-input` confirms it does not expand `@` references in
 `AGENTS.md`, absolute or relative, so the line that mode writes is text no agent
-reads. Codex is covered by the `Running Commands` section instead, which reaches
+reads. Codex is also covered by the `Running Commands` section, which reaches
 it because `~/.codex/AGENTS.md` is stowed from `shared/agents-md`. That section
 also covers Claude Code, where it is redundant but harmless: the hook leaves an
 already-prefixed command alone. Verify a change to it with

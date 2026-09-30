@@ -3,6 +3,7 @@ set -euo pipefail
 
 package_dir="${1:?usage: restore-harness.sh <package_dir> <target_dir>}"
 target_dir="${2:?usage: restore-harness.sh <package_dir> <target_dir>}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 if [ ! -d "$package_dir" ]; then
 	echo "restore-harness: no such package: $package_dir" >&2
@@ -22,4 +23,4 @@ while IFS= read -r rel; do
 
 	mv "$backup" "$live"
 	echo "restore-harness: restored $backup -> $live"
-done < <(cd "$package_dir" && find . \( -type f -o -type l \) -print | sed 's|^\./||')
+done < <(bash "$script_dir/list-harness-files.sh" "$package_dir")

@@ -3,6 +3,7 @@ set -euo pipefail
 
 package_dir="${1:?usage: adopt-harness.sh <package_dir> <target_dir>}"
 target_dir="${2:?usage: adopt-harness.sh <package_dir> <target_dir>}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 if [ ! -d "$package_dir" ]; then
 	echo "adopt-harness: no such package: $package_dir" >&2
@@ -49,7 +50,7 @@ while IFS= read -r rel; do
 		adopt) adoptable+=("$target_dir/$rel") ;;
 		refuse\ *) echo "adopt-harness: ${verdict#refuse }" >&2; exit 1 ;;
 	esac
-done < <(cd "$package_dir" && find . \( -type f -o -type l \) -print | sed 's|^\./||')
+done < <(bash "$script_dir/list-harness-files.sh" "$package_dir")
 
 for live in ${adoptable+"${adoptable[@]}"}; do
 	mv "$live" "$live.bak"
