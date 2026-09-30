@@ -21,6 +21,11 @@ agents-dotfiles/
 │           └── ...       - Supporting files (optional)
 ├── harnesses/        - Packages stowed to exactly one target each
 │   └── <harness>/
+├── tools/            - Per-tool integrations, stowed per harness
+│   └── <tool-name>/
+│       ├── README.md     - What the tool owns and what it only names
+│       ├── <harness>/    - Files this tool owns in that harness's target
+│       └── tests/
 ├── templates/        - Prompt templates (not stowed, referenced by absolute path)
 │   └── *.md
 └── docs/
@@ -137,7 +142,6 @@ Each `harnesses/<name>/` package stows to exactly one target:
 |---------|--------|
 | `harnesses/claude` | `~/.claude` |
 | `harnesses/opencode` | `~/.config/opencode` |
-| `harnesses/codex` | `~/.codex` |
 
 Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`,
 not `~/.opencode`. Every harness stow runs with `--no-folding`, so a directory the
@@ -175,10 +179,6 @@ SessionStart hook that injects it stays in `harnesses/claude`, because the JSON 
 it emits is Claude Code's. The two are siblings only after stowing, since both packages
 land in `~/.claude`; in this repo they sit in different directories.
 
-When a file moves between packages, restow the package losing it before the one gaining
-it. Stow will not create a link over a path another package still owns, and the losing
-package's restow then removes what the gaining one could not place.
-
 These config files are live. Claude Code writes through the symlink whenever
 `/config` runs or a plugin is toggled, so those writes appear as a diff in this
 repo. That is the point of versioning them. Secrets never belong here:
@@ -186,56 +186,31 @@ repo. That is the point of versioning them. Secrets never belong here:
 `harnesses/claude/settings.local.json` is gitignored so a stray copy cannot be
 committed.
 
-## RTK
+A harness target may also receive files from a tool package, which is why a stow
+conflict under `~/.codex` can name a path in `tools/`. When a file moves between
+packages, restow the package losing it before the one gaining it. Stow will not
+create a link over a path another package still owns, and the losing package's
+restow then removes what the gaining one could not place.
 
-[rtk](https://github.com/rtk-ai/rtk) is a CLI proxy that condenses command output
-before an agent reads it. `make setup-rtk` installs it via Homebrew when missing,
-then runs `scripts/setup-rtk.sh` before adopting and linking the Codex package.
-`make teardown-rtk` removes rtk's integrations, then unstows Codex and restores
-its adopted backups; the binary stays installed. A failed rtk operation prevents
-the dependent Codex step. Failed linking or unlinking reports partial completion.
-These targets stay out of `link-all`; linking the committed Claude settings and
-Codex package nevertheless installs their RTK hooks. Relinking Codex after
-teardown installs its hook again without running rtk init.
+## Tools
 
-The script runs `rtk init --global --hook-only`, not plain `rtk init --global`.
-Plain init appends an `@RTK.md` reference to `~/.claude/CLAUDE.md`, which is this
-repo's hand-maintained `shared/agents-md/AGENTS.md`. The agent-facing rtk rules
-live in that file's `Running Commands` section instead, written by hand and
-committed, so rtk never edits it.
+`tools/<name>/` packages a third-party tool's integration across harnesses: the
+files it owns, its setup script, and its tests. Each tool package stows per
+harness, so `tools/<name>/codex` stows to `TARGET_<name>_codex`. Setup targets
+stay out of `link-all`, because installing a tool is a deliberate act.
 
-rtk patches `~/.claude/settings.json` through the stow symlink, so its
-`PreToolUse` entry lands in `harnesses/claude/settings.json` and is committed like
-any other Claude Code write. Uninstalling leaves `"PreToolUse": []` behind; drop
-that hunk by hand if it matters.
+A tool package holds only files where the tool is the sole owner of the target
+path. Fragments inside shared files, such as a hook entry in
+`harnesses/claude/settings.json`, stay where they are; the tool's README names
+them instead.
 
-The script exists for one reason beyond sequencing: `rtk init` overwrites
-`~/.claude/settings.json.bak` unconditionally, and that path holds the
-pre-migration original `scripts/restore-harness.sh` hands back on unlink. The
-script archives it as `settings.json.bak.<UTC timestamp>.pre-rtk` and archives
-rtk's snapshot as `settings.json.bak.<UTC timestamp>.rtk`. Both paths are printed,
-including after failed or interrupted init. Archiving refuses overwrites; failure
-retains the source and reports its location. These timestamped backups require
-manual restoration: `unlink-harnesses` only restores the exact `.bak` name.
-Teardown fails if rtk is absent; reinstall rtk first.
+Read `tools/<name>/README.md` before changing anything a tool touches. It lists
+what the package owns and what it only names, including surfaces that are
+generated and not versioned.
 
-`rtk init --global --codex` is never run, though it does register a real
-PreToolUse hook rather than only an `@RTK.md` reference. `harnesses/codex`
-stows a hand-written `hooks.json` calling `rtk hook codex`, the command rtk
-0.50.0 ships for this purpose. The hook needs interactive trust approval, which
-linking does not bypass.
-
-`codex debug prompt-input` confirms it does not expand `@` references in
-`AGENTS.md`, absolute or relative, so the line that mode writes is text no agent
-reads. Codex is also covered by the `Running Commands` section, which reaches
-it because `~/.codex/AGENTS.md` is stowed from `shared/agents-md`. That section
-also covers Claude Code, where it is redundant but harmless: the hook leaves an
-already-prefixed command alone. Verify a change to it with
-`codex debug prompt-input`, which renders the model-visible prompt without an API
-call.
-
-If rtk is absent, the committed Claude hook reports a missing command. Its
-non-blocking behavior is inferred from Claude's exit-code contract, not tested here.
+Adding a tool costs a directory plus two Makefile variables, with no new recipe:
+append the name to `TOOLS` and define `TOOL_TARGETS_<name>` and its
+`TARGET_<name>_<harness>` entries.
 
 ## Skills Distribution
 
