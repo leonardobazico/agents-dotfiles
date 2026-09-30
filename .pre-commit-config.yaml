@@ -7,14 +7,11 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-        exclude: (^|/)templates/.*\.md$
         stages: [pre-commit]
       - id: end-of-file-fixer
-        exclude: (^|/)templates/.*\.md$
         stages: [pre-commit]
       - id: mixed-line-ending
         args: [--fix=lf]
-        exclude: (^|/)templates/.*\.md$
       - id: check-json
       - id: check-toml
       - id: check-yaml
@@ -28,6 +25,7 @@ repos:
       - id: mdformat
         additional_dependencies:
           - mdformat-frontmatter==2.1.2
+          - mdformat-gfm==1.0.0
         files: \.md$
         exclude: (^|/)templates/.*\.md$
 

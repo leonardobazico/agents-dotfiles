@@ -1,2 +1,8 @@
 # Renumber ordered lists consecutively (1. 2. 3.) instead of preserving source numbers.
 number = true
+wrap = 120
+
+# Tables are a GFM extension: without mdformat-gfm, `wrap` reflows them into prose.
+# Compact cells keep rows narrow and keep diffs to the edited row.
+[plugin.tables]
+compact_tables = true

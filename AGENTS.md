@@ -1,8 +1,10 @@
 # agents-dotfiles
 
-> `CLAUDE.md` in the same directory is a symlink to `AGENTS.md`. Edit `AGENTS.md` only; `CLAUDE.md` follows automatically.
+> `CLAUDE.md` in the same directory is a symlink to `AGENTS.md`. Edit `AGENTS.md` only; `CLAUDE.md` follows
+> automatically.
 
-AI agent workflow dotfiles managed via GNU Stow. This repo stores custom skills and prompt templates, and uses stow to distribute them to agent tool discovery paths.
+AI agent workflow dotfiles managed via GNU Stow. This repo stores custom skills and prompt templates, and uses stow to
+distribute them to agent tool discovery paths.
 
 ## Repository Structure
 
@@ -33,9 +35,9 @@ agents-dotfiles/
     └── specs/        - Design specifications
 ```
 
-Packages are grouped by how they are distributed. `shared/` holds content that is
-byte-identical across harnesses and fans out to several target directories.
-`harnesses/<name>/` holds config unique to one tool and stows to exactly one target.
+Packages are grouped by how they are distributed. `shared/` holds content that is byte-identical across harnesses and
+fans out to several target directories. `harnesses/<name>/` holds config unique to one tool and stows to exactly one
+target.
 
 ## Prerequisites
 
@@ -47,11 +49,11 @@ This is a trunk-based project. Work directly on `main` unless a task explicitly 
 
 ## Makefile Usage
 
-Run `make help` for the current list of targets, grouped by area. It is generated from
-the Makefile itself, so it never drifts. Do not restate the target list here.
+Run `make help` for the current list of targets, grouped by area. It is generated from the Makefile itself, so it never
+drifts. Do not restate the target list here.
 
-Adding a harness costs a directory plus two Makefile variables, with no new recipe:
-append the name to `HARNESSES` and define `TARGET_<name>`.
+Adding a harness costs a directory plus two Makefile variables, with no new recipe: append the name to `HARNESSES` and
+define `TARGET_<name>`.
 
 ## Pre-Commit
 
@@ -61,14 +63,12 @@ Install `pre-commit` with your preferred Python tool, then enable the hooks:
 pre-commit install --install-hooks
 ```
 
-That wires three stages, named by `default_install_hook_types`: `pre-commit` for the
-formatters, linters, and test suites, `commit-msg` for the conventional-commit check,
-and `pre-push` for a full-history secret scan.
+That wires three stages, named by `default_install_hook_types`: `pre-commit` for the formatters, linters, and test
+suites, `commit-msg` for the conventional-commit check, and `pre-push` for a full-history secret scan.
 
-Secret scanning runs at repo level rather than relying on a machine-global git hook, so
-a fresh clone is protected: `gitleaks git --staged --no-banner` on every commit and
-`gitleaks git --no-banner` over the whole history on every push. Install `gitleaks`
-(`brew install gitleaks`) or both hooks fail.
+Secret scanning runs at repo level rather than relying on a machine-global git hook, so a fresh clone is protected:
+`gitleaks git --staged --no-banner` on every commit and `gitleaks git --no-banner` over the whole history on every push.
+Install `gitleaks` (`brew install gitleaks`) or both hooks fail.
 
 Run the full repo pass when you first set it up or need to recheck everything:
 
@@ -78,16 +78,17 @@ pre-commit run --all-files
 
 Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-formatted, in this initial setup.
 
-Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh`
-(Python) and `scripts/run_tests.sh` (shell).
+Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh` (Python) and
+`scripts/run_tests.sh` (shell).
 
-Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g. `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
+Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g.
+`mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
 
 ## Adding a New Skill
 
-Invoke the `superpowers:writing-skills` skill first. It governs how a skill is written,
-edited, and verified before deployment. The steps below are the repo-specific wrapper
-around it: where the directory goes and how it reaches the discovery paths.
+Invoke the `superpowers:writing-skills` skill first. It governs how a skill is written, edited, and verified before
+deployment. The steps below are the repo-specific wrapper around it: where the directory goes and how it reaches the
+discovery paths.
 
 1. Create a directory in `shared/skills/` with a lowercase, hyphenated name:
 
@@ -114,15 +115,22 @@ around it: where the directory goes and how it reaches the discovery paths.
 
 ## Skill Writing Standards
 
-Skill and template content (`SKILL.md`, `shared/skills/templates/*.md`) is a prompt an agent executes, not documentation a human reads once. Keep it:
+Skill and template content (`SKILL.md`, `shared/skills/templates/*.md`) is a prompt an agent executes, not documentation
+a human reads once. Keep it:
 
-- **Concise**: state each rule once. Do not restate a rule already covered by an earlier section or a shared vocabulary list.
-- **Unambiguous**: pin every term to one concrete definition (exact trigger conditions, exact tag/field names). Avoid "usually", "generally", "as needed" where a rule must hold every time.
-- **Deterministic**: prefer explicit branches ("if X, do A; otherwise do B") over vague guidance that could be interpreted differently across runs. A table beats prose for multi-path logic.
+- **Concise**: state each rule once. Do not restate a rule already covered by an earlier section or a shared vocabulary
+  list.
+- **Unambiguous**: pin every term to one concrete definition (exact trigger conditions, exact tag/field names). Avoid
+  "usually", "generally", "as needed" where a rule must hold every time.
+- **Deterministic**: prefer explicit branches ("if X, do A; otherwise do B") over vague guidance that could be
+  interpreted differently across runs. A table beats prose for multi-path logic.
 
-When a skill grows through iteration, re-read it for duplicated phrasing before committing and compact it, the same way code gets refactored.
+When a skill grows through iteration, re-read it for duplicated phrasing before committing and compact it, the same way
+code gets refactored.
 
-**Script mechanical steps** (git ranges, path lookups, template substitution): have the skill call a script instead of describing the procedure in prose. Scripts are testable and repeatable; prose is re-interpreted each run and drifts. Reserve prose for judgment calls. Reference: `subagent-driven-development`'s `scripts/` directory.
+**Script mechanical steps** (git ranges, path lookups, template substitution): have the skill call a script instead of
+describing the procedure in prose. Scripts are testable and repeatable; prose is re-interpreted each run and drifts.
+Reserve prose for judgment calls. Reference: `subagent-driven-development`'s `scripts/` directory.
 
 ## Agent Config Distribution
 
@@ -132,93 +140,79 @@ When a skill grows through iteration, re-read it for duplicated phrasing before 
 - `make unlink-agents-md` removes those symlinks.
 - `make relink-agents-md` refreshes those symlinks after edits.
 
-This is separate from the repo-root `AGENTS.md` and `CLAUDE.md`, where `CLAUDE.md` remains a symlink that follows `AGENTS.md`.
+This is separate from the repo-root `AGENTS.md` and `CLAUDE.md`, where `CLAUDE.md` remains a symlink that follows
+`AGENTS.md`.
 
 ## Harness Config Distribution
 
 Each `harnesses/<name>/` package stows to exactly one target:
 
 | Package | Target |
-|---------|--------|
+| -- | -- |
 | `harnesses/claude` | `~/.claude` |
 | `harnesses/opencode` | `~/.config/opencode` |
 
-Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`,
-not `~/.opencode`.
+Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`, not `~/.opencode`.
 
-Every harness and tool recipe delegates to `scripts/stow-package.sh <action> <package_dir> <target_dir>`, which owns the order the steps run in. `link` and
-`relink` adopt before stowing; `unlink` unstows before restoring. Keeping that
-order in one script is why the recipes are one line each, and why a new package
-axis costs variables rather than another copy of the sequence.
+Every harness and tool recipe delegates to `scripts/stow-package.sh <action> <package_dir> <target_dir>`, which owns the
+order the steps run in. `link` and `relink` adopt before stowing; `unlink` unstows before restoring. Keeping that order
+in one script is why the recipes are one line each, and why a new package axis costs variables rather than another copy
+of the sequence.
 
-Every stow it runs uses `--no-folding`, so a directory the harness manages stays a
-real directory in the target rather than becoming a symlink into this repo.
-Without it, stow folds `~/.claude/hooks` into a single link, and a hook added
+Every stow it runs uses `--no-folding`, so a directory the harness manages stays a real directory in the target rather
+than becoming a symlink into this repo. Without it, stow folds `~/.claude/hooks` into a single link, and a hook added
 there by another tool would land inside this working tree.
 
-Adoption runs through `scripts/adopt-harness.sh`. For each file in the package it
-inspects the live path and branches:
+Adoption runs through `scripts/adopt-harness.sh`. For each file in the package it inspects the live path and branches:
 
 | Live path is | Action |
-|--------------|--------|
+| -- | -- |
 | Absent | Nothing; stow creates the link |
 | A real file | Moved to `<name>.bak`, then stowed |
 | A symlink resolving to this package's own file | Left alone; already adopted |
 | Anything else | Fails loudly and changes nothing |
 
-Ownership is the package file itself, not the repository. A symlink to some other
-file in this repo is refused here with a message naming both paths, rather than
-surviving adoption and failing as a stow conflict a step later.
+Ownership is the package file itself, not the repository. A symlink to some other file in this repo is refused here with
+a message naming both paths, rather than surviving adoption and failing as a stow conflict a step later.
 
-An existing `.bak` is never overwritten. If one is present while the live path is
-still a real file, the target fails, because the older backup is the true
-pre-migration state.
+An existing `.bak` is never overwritten. If one is present while the live path is still a real file, the target fails,
+because the older backup is the true pre-migration state.
 
-Unlinking reverses the migration: it unstows, then calls
-`scripts/restore-harness.sh` to move each `<name>.bak` back to its live path. A
-live path that something else already occupies keeps its `.bak`, and the script
-says so on stderr instead of overwriting.
+Unlinking reverses the migration: it unstows, then calls `scripts/restore-harness.sh` to move each `<name>.bak` back to
+its live path. A live path that something else already occupies keeps its `.bak`, and the script says so on stderr
+instead of overwriting.
 
-A harness package holds only what encodes that tool's own contract: its config schema,
-its hook protocol. Content that any harness would use byte for byte stays in `shared/`.
-`superpowers-overrides.md` ships from `shared/agents-md` for that reason, while the
-SessionStart hook that injects it stays in `harnesses/claude`, because the JSON envelope
-it emits is Claude Code's. The two are siblings only after stowing, since both packages
-land in `~/.claude`; in this repo they sit in different directories.
+A harness package holds only what encodes that tool's own contract: its config schema, its hook protocol. Content that
+any harness would use byte for byte stays in `shared/`. `superpowers-overrides.md` ships from `shared/agents-md` for
+that reason, while the SessionStart hook that injects it stays in `harnesses/claude`, because the JSON envelope it emits
+is Claude Code's. The two are siblings only after stowing, since both packages land in `~/.claude`; in this repo they
+sit in different directories.
 
-These config files are live. Claude Code writes through the symlink whenever
-`/config` runs or a plugin is toggled, so those writes appear as a diff in this
-repo. That is the point of versioning them. Secrets never belong here:
-`~/.claude/settings.local.json` stays unmanaged and machine-local, and
-`harnesses/claude/settings.local.json` is gitignored so a stray copy cannot be
-committed.
+These config files are live. Claude Code writes through the symlink whenever `/config` runs or a plugin is toggled, so
+those writes appear as a diff in this repo. That is the point of versioning them. Secrets never belong here:
+`~/.claude/settings.local.json` stays unmanaged and machine-local, and `harnesses/claude/settings.local.json` is
+gitignored so a stray copy cannot be committed.
 
-A harness target may also receive files from a tool package, which is why a stow
-conflict under `~/.codex` can name a path in `tools/`. When a file moves between
-packages, restow the package losing it before the one gaining it. Stow will not
-create a link over a path another package still owns, and the losing package's
-restow then removes what the gaining one could not place.
+A harness target may also receive files from a tool package, which is why a stow conflict under `~/.codex` can name a
+path in `tools/`. When a file moves between packages, restow the package losing it before the one gaining it. Stow will
+not create a link over a path another package still owns, and the losing package's restow then removes what the gaining
+one could not place.
 
 ## Tools
 
-`tools/<name>/` packages a third-party tool's integration across harnesses: the
-files it owns, its setup script, and its tests. Each tool package stows per
-harness, so `tools/<name>/codex` stows to `TARGET_<name>_codex`. Setup targets
-stay out of `link-all`, because installing a tool is a deliberate act.
+`tools/<name>/` packages a third-party tool's integration across harnesses: the files it owns, its setup script, and its
+tests. Each tool package stows per harness, so `tools/<name>/codex` stows to `TARGET_<name>_codex`. Setup targets stay
+out of `link-all`, because installing a tool is a deliberate act.
 
-A tool package holds only files where the tool is the sole owner of the target
-path. Fragments inside shared files, such as a hook entry in
-`harnesses/claude/settings.json`, stay where they are; the tool's README names
-them instead.
+A tool package holds only files where the tool is the sole owner of the target path. Fragments inside shared files, such
+as a hook entry in `harnesses/claude/settings.json`, stay where they are; the tool's README names them instead.
 
-Read `tools/<name>/README.md` before changing anything a tool touches. It lists
-what the package owns and what it only names, including surfaces that are
-generated and not versioned.
+Read `tools/<name>/README.md` before changing anything a tool touches. It lists what the package owns and what it only
+names, including surfaces that are generated and not versioned.
 
-Adding a tool costs a directory plus three Makefile variables, with no new recipe:
-append the name to `TOOLS`, list its harnesses in `TOOL_TARGETS_<name>`, and define
-one `TARGET_<name>_<harness>` per harness. A tool listed in `TOOLS` with no
-`TOOL_TARGETS_<name>` fails the tool targets loudly rather than linking nothing.
+Adding a tool costs a directory plus three Makefile variables, with no new recipe: append the name to `TOOLS`, list its
+harnesses in `TOOL_TARGETS_<name>`, and define one `TARGET_<name>_<harness>` per harness. A tool listed in `TOOLS` with
+no `TOOL_TARGETS_<name>` fails the tool targets loudly rather than linking nothing.
 
 ## Skills Distribution
 
@@ -234,4 +228,5 @@ Each skill directory in `shared/skills/` becomes a symlink at the target paths. 
 ~/.claude/skills/ask-agents-for-feedback -> <repo>/shared/skills/ask-agents-for-feedback
 ```
 
-Templates in `templates/` are not stowed. Reference them by absolute path (`/Users/<user>/agents-dotfiles/templates/...`).
+Templates in `templates/` are not stowed. Reference them by absolute path
+(`/Users/<user>/agents-dotfiles/templates/...`).
