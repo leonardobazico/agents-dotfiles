@@ -28,6 +28,9 @@ agents-dotfiles/
 │       ├── README.md     - What the tool owns and what it only names
 │       ├── <harness>/    - Files this tool owns in that harness's target
 │       └── tests/
+├── plugins/          - Plugin declaration (not stowed, installed by the harness CLIs)
+│   ├── README.md     - What the package owns and what it only names
+│   └── manifest.tsv  - Every plugin and harness pair
 ├── templates/        - Prompt templates (not stowed, referenced by absolute path)
 │   └── *.md
 └── docs/
@@ -42,6 +45,17 @@ target.
 ## Prerequisites
 
 - [GNU Stow](https://www.gnu.org/software/stow/) (`brew install stow`)
+
+## Dependencies
+
+`make install-dependencies` installs the harness CLIs and the repo toolchain through Homebrew: the `opencode`, `stow`,
+`gitleaks`, and `pre-commit` formulae, and the `claude-code` and `codex` casks. The lists live in
+`scripts/install-dependencies.sh` rather than in Makefile variables, because no recipe loops over them.
+
+`brew install` exits 0 for an already-installed package, so the target is re-runnable. Like `setup-rtk`, it stays out of
+`link-all`: installing software is deliberate.
+
+`rtk` is not distributed through Homebrew and keeps its own `setup-rtk` target.
 
 ## Repo Workflow
 
@@ -213,6 +227,20 @@ names, including surfaces that are generated and not versioned.
 Adding a tool costs a directory plus three Makefile variables, with no new recipe: append the name to `TOOLS`, list its
 harnesses in `TOOL_TARGETS_<name>`, and define one `TARGET_<name>_<harness>` per harness. A tool listed in `TOOLS` with
 no `TOOL_TARGETS_<name>` fails the tool targets loudly rather than linking nothing.
+
+## Plugins
+
+`plugins/manifest.tsv` declares every plugin and harness pair: its source, and whether this repo installs it.
+`make install-plugins` installs the rows marked `auto`; `manual` records a working install this repo does not automate,
+and `skip` records one deliberately left out. Adding a plugin costs a manifest row, with no new recipe.
+
+Read `plugins/README.md` before changing anything a plugin touches. It lists the per-harness commands, the surfaces this
+repo names but does not own, and why there is no uninstall target.
+
+Plugin state is imperative and machine-local, so stow cannot own it. One exception leaks into the repo:
+`claude plugin marketplace add` and `claude plugin install` write `extraKnownMarketplaces` and `enabledPlugins` into
+`~/.claude/settings.json`, which is the stow symlink, so installing a Claude Code plugin produces a committed diff in
+`harnesses/claude/settings.json`. That is the same behavior `tools/rtk/README.md` records for `rtk init`.
 
 ## Skills Distribution
 
