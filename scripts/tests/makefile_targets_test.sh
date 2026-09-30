@@ -47,13 +47,26 @@ for target in setup-rtk teardown-rtk; do
 	fi
 done
 
-# rtk is opt-in. Wiring it into the stow lifecycle would install a Bash hook on
-# every machine that links this repo.
-plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
-if ! printf '%s' "$plan" | grep -q 'setup-rtk.sh'; then
-	pass "link-all does not install rtk"
+test_root="$(mktemp -d)"
+trap 'rm -rf "$test_root"' EXIT
+mkdir -p "$test_root/bin" "$test_root/claude" "$test_root/agents" "$test_root/skills"
+for command_name in rtk brew; do
+	cat > "$test_root/bin/$command_name" <<'SH'
+#!/bin/sh
+printf '%s\n' unexpected > "$PROBE_UNEXPECTED"
+exit 99
+SH
+	chmod +x "$test_root/bin/$command_name"
+done
+if PATH="$test_root/bin:$PATH" PROBE_UNEXPECTED="$test_root/unexpected" \
+	make -C "$repo_root" link-all HARNESSES=claude TARGET_claude="$test_root/claude" \
+	AGENTS_MD_TARGETS="$test_root/agents" SKILLS_TARGETS="$test_root/skills" >/dev/null 2>&1 \
+	&& [ -L "$test_root/claude/settings.json" ] \
+	&& grep -q 'rtk hook claude' "$test_root/claude/settings.json" \
+	&& [ ! -e "$test_root/unexpected" ]; then
+	pass "link-all links the committed hook without installing rtk or running init"
 else
-	fail "link-all does not install rtk"
+	fail "link-all links the committed hook without installing rtk or running init"
 fi
 
 if [ "$failures" -ne 0 ]; then

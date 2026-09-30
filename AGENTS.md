@@ -189,9 +189,9 @@ committed.
 
 [rtk](https://github.com/rtk-ai/rtk) is a CLI proxy that condenses command output
 before an agent reads it. `make setup-rtk` installs it via Homebrew when missing,
-then runs `scripts/setup-rtk.sh`. `make teardown-rtk` reverses it. Both are opt-in
-and stay out of `link-all`, because linking this repo on a machine should not
-install a hook that rewrites every Bash call.
+then runs `scripts/setup-rtk.sh`. `make teardown-rtk` removes rtk's integrations
+but keeps the binary installed. These targets stay out of `link-all`; linking
+the committed Claude settings nevertheless installs its RTK hook.
 
 The script runs `rtk init --global --hook-only`, not plain `rtk init --global`.
 Plain init appends an `@RTK.md` reference to `~/.claude/CLAUDE.md`, which is this
@@ -207,9 +207,15 @@ that hunk by hand if it matters.
 The script exists for one reason beyond sequencing: `rtk init` overwrites
 `~/.claude/settings.json.bak` unconditionally, and that path holds the
 pre-migration original `scripts/restore-harness.sh` hands back on unlink. The
-script moves it aside and puts it back.
+script archives it as `settings.json.bak.<UTC timestamp>.pre-rtk` and archives
+rtk's snapshot as `settings.json.bak.<UTC timestamp>.rtk`. Both paths are printed,
+including after failed or interrupted init. Archiving refuses overwrites; failure
+retains the source and reports its location. These timestamped backups require
+manual restoration: `unlink-harnesses` only restores the exact `.bak` name.
+Teardown fails if rtk is absent; reinstall rtk first.
 
-`rtk init --global --codex` is never run. Codex has no command hook, and
+`rtk init --global --codex` is never run. Codex supports command hooks, but
+this intermediate setup covers it through shared instructions. Additionally,
 `codex debug prompt-input` confirms it does not expand `@` references in
 `AGENTS.md`, absolute or relative, so the line that mode writes is text no agent
 reads. Codex is covered by the `Running Commands` section instead, which reaches
@@ -218,6 +224,9 @@ also covers Claude Code, where it is redundant but harmless: the hook leaves an
 already-prefixed command alone. Verify a change to it with
 `codex debug prompt-input`, which renders the model-visible prompt without an API
 call.
+
+If rtk is absent, the committed Claude hook reports a missing command. Its
+non-blocking behavior is inferred from Claude's exit-code contract, not tested here.
 
 ## Skills Distribution
 
