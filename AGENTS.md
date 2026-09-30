@@ -196,9 +196,13 @@ committed.
 
 [rtk](https://github.com/rtk-ai/rtk) is a CLI proxy that condenses command output
 before an agent reads it. `make setup-rtk` installs it via Homebrew when missing,
-then runs `scripts/setup-rtk.sh`. `make teardown-rtk` removes rtk's integrations
-but keeps the binary installed. These targets stay out of `link-all`; linking
-the committed Claude settings nevertheless installs its RTK hook.
+then runs `scripts/setup-rtk.sh` before adopting and linking the Codex package.
+`make teardown-rtk` removes rtk's integrations, then unstows Codex and restores
+its adopted backups; the binary stays installed. A failed rtk operation prevents
+the dependent Codex step. Failed linking or unlinking reports partial completion.
+These targets stay out of `link-all`; linking the committed Claude settings and
+Codex package nevertheless installs their RTK hooks. Relinking Codex after
+teardown installs its hook again without running rtk init.
 
 The script runs `rtk init --global --hook-only`, not plain `rtk init --global`.
 Plain init appends an `@RTK.md` reference to `~/.claude/CLAUDE.md`, which is this
@@ -227,7 +231,9 @@ stows `hooks.json` and `hooks/rtk.py`; its Bash hook delegates to `rtk hook clau
 and adds an allow decision only when a rewrite lacks one. Explicit decisions
 are preserved; malformed JSON fails with a diagnostic and no response.
 The hook resolves its adapter through `${CODEX_HOME:-$HOME/.codex}` and needs
-interactive trust approval. Linking does not bypass that approval.
+interactive trust approval. Linking does not bypass that approval. Setup and
+teardown select only the Codex harness, preserving `TARGET_codex` overrides;
+rtk itself continues to manage Claude and OpenCode under HOME.
 
 `codex debug prompt-input` confirms it does not expand `@` references in
 `AGENTS.md`, absolute or relative, so the line that mode writes is text no agent

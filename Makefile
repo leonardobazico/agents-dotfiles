@@ -65,11 +65,15 @@ relink-harnesses: ##@harness Relink every per-harness config package
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
 		stow --verbose --no-folding $(HARNESS_STOW_IGNORE) --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
-setup-rtk: ##@rtk Install rtk and register its hook and OpenCode plugin
+setup-rtk: ##@rtk Install rtk integrations and link the Codex hook
 	$(CURDIR)/scripts/setup-rtk.sh
+	@$(MAKE) link-harnesses HARNESSES=codex TARGET_codex="$(TARGET_codex)" || { \
+		status=$$?; echo "setup-rtk: partial setup; rtk configured but Codex linking failed" >&2; exit $$status; }
 
-teardown-rtk: ##@rtk Remove the rtk hook and OpenCode plugin
+teardown-rtk: ##@rtk Remove rtk integrations and restore adopted Codex files
 	$(CURDIR)/scripts/setup-rtk.sh --uninstall
+	@$(MAKE) unlink-harnesses HARNESSES=codex TARGET_codex="$(TARGET_codex)" || { \
+		status=$$?; echo "setup-rtk: partial teardown; rtk removed but Codex unlinking failed" >&2; exit $$status; }
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py
