@@ -96,6 +96,22 @@ for target in setup-rtk teardown-rtk; do
 	fi
 done
 
+for target in install-dependencies install-plugins; do
+	plan="$(make -C "$repo_root" -n "$target" 2>&1)"
+	if printf '%s' "$plan" | grep -q "scripts/$target.sh"; then
+		pass "$target runs through its script"
+	else
+		fail "$target runs through its script (got: $plan)"
+	fi
+done
+
+plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
+if printf '%s' "$plan" | grep -qE 'install-(dependencies|plugins)\.sh'; then
+	fail "link-all installs nothing"
+else
+	pass "link-all installs nothing"
+fi
+
 if [ "$failures" -ne 0 ]; then
 	echo "$failures failure(s)"
 	exit 1

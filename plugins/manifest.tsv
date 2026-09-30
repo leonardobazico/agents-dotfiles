@@ -1,0 +1,7 @@
+# plugin	harness	source	install
+i-have-adhd	claude	ayghri/i-have-adhd	auto
+i-have-adhd	codex	ayghri/i-have-adhd@main	auto
+i-have-adhd	opencode	-	skip
+superpowers	claude	claude-plugins-official	manual
+superpowers	opencode	git+https://github.com/obra/superpowers.git#v6.2.0	manual
+superpowers	codex	obra/superpowers	manual
