@@ -65,13 +65,13 @@ run_make() {
 }
 
 has_owned_links() {
-	[ -L "$codex_target/hooks.json" ] && [ -L "$codex_target/hooks/rtk.py" ] \
+	[ -L "$codex_target/hooks.json" ] \
 		&& [ "$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$codex_target/hooks.json")" = "$repo_root/harnesses/codex/hooks.json" ]
 }
 
 new_case
 if run_make setup-rtk && has_owned_links \
-	&& run_make teardown-rtk && [ ! -e "$codex_target/hooks.json" ] && [ ! -L "$codex_target/hooks/rtk.py" ] \
+	&& run_make teardown-rtk && [ ! -e "$codex_target/hooks.json" ] \
 	&& run_make setup-rtk && has_owned_links; then
 	pass "setup-teardown-setup manages only the Codex package"
 else
@@ -98,7 +98,7 @@ for conflict in symlink backup; do
 		printf 'OLDER\n' > "$codex_target/hooks.json.bak"
 	fi
 	if ! run_make setup-rtk && grep -qi 'partial' "$output" \
-		&& [ ! -L "$codex_target/hooks/rtk.py" ]; then
+		&& [ ! -e "$codex_target/hooks" ]; then
 		if [ "$conflict" = symlink ] && [ "$(readlink "$codex_target/hooks.json")" = /etc/hosts ]; then
 			pass "foreign hook symlink is preserved with partial-setup diagnostic"
 		elif [ "$conflict" = backup ] && [ "$(cat "$codex_target/hooks.json")" = LIVE ] \
@@ -111,23 +111,6 @@ for conflict in symlink backup; do
 		fail "$conflict conflict fails setup"
 	fi
 done
-
-new_case
-printf 'ORIGINAL\n' > "$codex_target/hooks.json"
-printf 'OBSTRUCTION\n' > "$codex_target/hooks"
-if ! run_make setup-rtk && grep -qi 'partial' "$output" \
-	&& [ "$(cat "$codex_target/hooks.json.bak")" = ORIGINAL ] && [ ! -e "$codex_target/hooks.json" ] \
-	&& [ "$(cat "$codex_target/hooks")" = OBSTRUCTION ]; then
-	rm "$codex_target/hooks"
-	if run_make setup-rtk && has_owned_links && run_make teardown-rtk \
-		&& [ "$(cat "$codex_target/hooks.json")" = ORIGINAL ]; then
-		pass "post-adoption stow failure retains backups and permits recovery"
-	else
-		fail "post-adoption stow failure recovery"
-	fi
-else
-	fail "post-adoption stow failure retains backups"
-fi
 
 new_case
 probe_fail=23

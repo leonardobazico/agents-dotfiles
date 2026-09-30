@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CODEX_HOME:-$HOME/.codex}/hooks/rtk.py\""
+            "command": "rtk hook codex"
           }
         ]
       }

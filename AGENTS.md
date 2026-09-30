@@ -145,12 +145,6 @@ harness manages stays a real directory in the target rather than becoming a syml
 into this repo. Without it, stow folds `~/.claude/hooks` into a single link, and a
 hook added there by another tool would land inside this working tree.
 
-Harness `tests/` directories and `run_tests.sh` runners are repository-only.
-Stow ignores them; `scripts/list-harness-files.sh` applies the same exclusions
-to adoption and restoration. Codex hook tests live beside the adapter at
-`harnesses/codex/hooks/tests/test_rtk.py`; run
-`bash harnesses/codex/hooks/run_tests.sh`. The shell suite delegates to that runner.
-
 `make link-harnesses` calls `scripts/adopt-harness.sh` before stowing. For each file
 in the package it inspects the live path and branches:
 
@@ -225,15 +219,11 @@ retains the source and reports its location. These timestamped backups require
 manual restoration: `unlink-harnesses` only restores the exact `.bak` name.
 Teardown fails if rtk is absent; reinstall rtk first.
 
-`rtk init --global --codex` is never run. Codex supports command hooks, but
-rtk's Codex init only writes an `@RTK.md` reference. Instead, `harnesses/codex`
-stows `hooks.json` and `hooks/rtk.py`; its Bash hook delegates to `rtk hook claude`
-and adds an allow decision only when a rewrite lacks one. Explicit decisions
-are preserved; malformed JSON fails with a diagnostic and no response.
-The hook resolves its adapter through `${CODEX_HOME:-$HOME/.codex}` and needs
-interactive trust approval. Linking does not bypass that approval. Setup and
-teardown select only the Codex harness, preserving `TARGET_codex` overrides;
-rtk itself continues to manage Claude and OpenCode under HOME.
+`rtk init --global --codex` is never run, though it does register a real
+PreToolUse hook rather than only an `@RTK.md` reference. `harnesses/codex`
+stows a hand-written `hooks.json` calling `rtk hook codex`, the command rtk
+0.50.0 ships for this purpose. The hook needs interactive trust approval, which
+linking does not bypass.
 
 `codex debug prompt-input` confirms it does not expand `@` references in
 `AGENTS.md`, absolute or relative, so the line that mode writes is text no agent

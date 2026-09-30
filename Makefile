@@ -1,6 +1,5 @@
 SHARED_DIR  := $(CURDIR)/shared
 HARNESS_DIR := $(CURDIR)/harnesses
-HARNESS_STOW_IGNORE := --ignore='(^|/)(tests(/|$$)|run_tests\.sh$$)'
 
 AGENTS_MD_TARGETS := $(HOME)/.agents $(HOME)/.claude $(HOME)/.codex
 SKILLS_TARGETS    := $(HOME)/.agents/skills $(HOME)/.claude/skills
@@ -52,18 +51,18 @@ link-harnesses: ##@harness Link every per-harness config package
 	@$(foreach h,$(HARNESSES), \
 		mkdir -p $(TARGET_$(h)) && \
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
-		stow --verbose --no-folding $(HARNESS_STOW_IGNORE) --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --stow $(h) && ) true
+		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --stow $(h) && ) true
 
 unlink-harnesses: ##@harness Unlink every per-harness config package and restore backups
 	@$(foreach h,$(HARNESSES), \
-		stow --verbose $(HARNESS_STOW_IGNORE) --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && \
+		stow --verbose --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && \
 		$(CURDIR)/scripts/restore-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
 
 relink-harnesses: ##@harness Relink every per-harness config package
 	@$(foreach h,$(HARNESSES), \
 		mkdir -p $(TARGET_$(h)) && \
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
-		stow --verbose --no-folding $(HARNESS_STOW_IGNORE) --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
+		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
 setup-rtk: ##@rtk Install rtk integrations and link the Codex hook
 	$(CURDIR)/scripts/setup-rtk.sh
