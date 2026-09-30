@@ -1,13 +1,5 @@
 {
-  "model": "opus",
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
-  },
-  "effortLevel": "medium",
-  "autoUpdatesChannel": "stable",
-  "minimumVersion": "2.1.89",
-  "theme": "light-daltonized",
-  "agentPushNotifEnabled": true,
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -22,5 +14,13 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "effortLevel": "medium",
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.89",
+  "theme": "light-daltonized",
+  "agentPushNotifEnabled": true
 }
