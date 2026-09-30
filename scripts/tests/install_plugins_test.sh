@@ -114,6 +114,25 @@ else
 	fail "the committed manifest resolves by default (log: $(cat "$log"))"
 fi
 
+# The loop reads the manifest on stdin. An installer that reads stdin would
+# consume the remaining rows, so every row must be attempted regardless.
+new_case
+printf 'one\tclaude\towner/one\tauto\n' > "$manifest"
+printf 'two\tcodex\towner/two\tauto\n' >> "$manifest"
+printf 'three\tclaude\towner/three\tauto\n' >> "$manifest"
+cat > "$installer" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >> "$INSTALLER_LOG"
+cat > /dev/null
+SH
+chmod +x "$installer"
+INSTALLER_LOG="$log" run_script > /dev/null
+if [ "$(wc -l < "$log")" -eq 3 ]; then
+	pass "an installer that reads stdin does not swallow the remaining rows"
+else
+	fail "an installer that reads stdin does not swallow the remaining rows (log: $(cat "$log"))"
+fi
+
 if [ "$failures" -ne 0 ]; then
 	echo "$failures failure(s)"
 	exit 1

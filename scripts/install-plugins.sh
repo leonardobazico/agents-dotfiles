@@ -31,7 +31,9 @@ while IFS= read -r line || [ -n "$line" ]; do
 		;;
 	esac
 
-	"$installer" "$harness" "$plugin" "$source_ref" || status=1
+	# The loop holds the manifest on stdin; an installer that read it would
+	# consume the remaining rows.
+	"$installer" "$harness" "$plugin" "$source_ref" < /dev/null || status=1
 done < "$manifest"
 
 exit "$status"

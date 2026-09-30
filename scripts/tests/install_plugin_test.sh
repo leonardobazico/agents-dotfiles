@@ -65,13 +65,15 @@ else
 	fail "an unsupported harness fails naming it and runs no command (got: $out)"
 fi
 
-new_case
-out="$(PATH="$bin:$PATH" "$script" claude i-have-adhd i-have-adhd 2>&1)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q 'i-have-adhd' && [ ! -s "$log" ]; then
-	pass "a source without owner/repo fails naming the source"
-else
-	fail "a source without owner/repo fails naming the source (got: $out)"
-fi
+for bad_source in not-a-repo owner/ a/b/c https://github.com/owner/repo.git /etc/passwd; do
+	new_case
+	out="$(PATH="$bin:$PATH" "$script" claude someplug "$bad_source" 2>&1)"
+	if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -qF "$bad_source" && [ ! -s "$log" ]; then
+		pass "source '$bad_source' fails naming the source"
+	else
+		fail "source '$bad_source' fails naming the source (got: $out)"
+	fi
+done
 
 new_case
 empty_bin="$work/empty-bin"
@@ -130,6 +132,42 @@ if PLUGIN_EXIT=1 LIST_PLUGIN='' \
 	fail "a failed claude install absent from the listing fails the run"
 else
 	pass "a failed claude install absent from the listing fails the run"
+fi
+
+# A plugin whose selector is a substring of an installed one is a different
+# plugin, so a failed install of it must not be accepted.
+new_case
+if PLUGIN_EXIT=1 LIST_PLUGIN='  > i-have-adhd@i-have-adhd' \
+	PATH="$bin:$PATH" "$script" claude adhd ayghri/i-have-adhd >/dev/null 2>&1; then
+	fail "a failed claude install is not accepted on a substring match of another plugin"
+else
+	pass "a failed claude install is not accepted on a substring match of another plugin"
+fi
+
+new_case
+if PLUGIN_EXIT=1 LIST_PLUGIN='  > i-have-adhd@i-have-adhd' \
+	PATH="$bin:$PATH" "$script" claude i-have-adhd ayghri/i-have-adhd >/dev/null 2>&1; then
+	pass "a failed claude install is accepted when the listing shows that selector"
+else
+	fail "a failed claude install is accepted when the listing shows that selector"
+fi
+
+new_case
+if ADD_EXIT=1 LIST_MARKETPLACE="$(printf 'MARKETPLACE\tROOT\ni-have-adhd\t/tmp/x')" \
+	PATH="$bin:$PATH" "$script" codex i-have-adhd ayghri/i-have-adhd@main > "$work/out" 2>&1 \
+	&& grep -q '^codex plugin add i-have-adhd@i-have-adhd$' "$log"; then
+	pass "a failed codex marketplace add is accepted when the listing shows the marketplace"
+else
+	fail "a failed codex marketplace add is accepted when the listing shows the marketplace"
+	cat "$work/out" "$log"
+fi
+
+new_case
+if ADD_EXIT=1 LIST_MARKETPLACE='MARKETPLACE	ROOT' \
+	PATH="$bin:$PATH" "$script" codex i-have-adhd ayghri/i-have-adhd@main >/dev/null 2>&1; then
+	fail "a codex listing holding only its header is not a present marketplace"
+else
+	pass "a codex listing holding only its header is not a present marketplace"
 fi
 
 if [ "$failures" -ne 0 ]; then

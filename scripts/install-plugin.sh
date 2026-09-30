@@ -20,13 +20,10 @@ claude | codex) ;;
 esac
 
 repo="${source_ref%@*}"
-case "$repo" in
-*/*) ;;
-*)
+if ! [[ "$repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
 	echo "install-plugin.sh: source '$source_ref' is not an owner/repo reference" >&2
 	exit 1
-	;;
-esac
+fi
 
 if ! command -v "$harness" > /dev/null 2>&1; then
 	echo "install-plugin.sh: $harness is not on PATH; run 'make install-dependencies' first" >&2
@@ -46,7 +43,8 @@ marketplace_present() {
 
 plugin_present() {
 	case "$harness" in
-	claude) claude plugin list 2> /dev/null | grep -qF "$selector" ;;
+	claude) claude plugin list 2> /dev/null |
+		awk -v s="$selector" '$2 == s { found = 1 } END { exit !found }' ;;
 	codex) codex plugin list 2> /dev/null |
 		awk -v s="$selector" '$1 == s && $0 !~ /not installed/ { found = 1 } END { exit !found }' ;;
 	esac
