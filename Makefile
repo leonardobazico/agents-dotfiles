@@ -13,7 +13,8 @@ TOOLS            := rtk
 TOOL_TARGETS_rtk := codex
 TARGET_rtk_codex := $(HOME)/.codex
 
-STOW_PACKAGE := $(CURDIR)/scripts/stow-package.sh
+STOW_PACKAGE         := $(CURDIR)/scripts/stow-package.sh
+INSTALL_DEPENDENCIES := $(CURDIR)/scripts/install-dependencies.sh
 
 # Each tool stows once per harness it targets. Flattening the two axes into
 # <tool>/<harness> pairs lets one foreach drive every tool recipe, and names the
@@ -28,6 +29,7 @@ TOOL_PAIRS = $(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TAR
 	link-tools unlink-tools relink-tools \
 	link-all unlink-all relink-all \
 	setup-rtk teardown-rtk \
+	install-dependencies \
 	cache-tokenizers \
 	help
 
@@ -86,6 +88,9 @@ teardown-rtk: ##@rtk Remove rtk integrations and restore adopted files
 	$(TOOLS_DIR)/rtk/setup-rtk.sh --uninstall
 	@$(MAKE) unlink-tools TOOLS=rtk TARGET_rtk_codex="$(TARGET_rtk_codex)" || { \
 		status=$$?; echo "teardown-rtk: partial teardown; rtk removed but tool unlinking failed" >&2; exit $$status; }
+
+install-dependencies: ##@setup Install harness CLIs and repo tooling via Homebrew
+	$(INSTALL_DEPENDENCIES)
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py
