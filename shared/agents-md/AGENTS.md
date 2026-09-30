@@ -52,7 +52,12 @@ Conflict resolution:
 
 ## Running Commands
 
-Prefix every shell command with `rtk`, a proxy that condenses output to save tokens: `rtk git status`, `rtk grep -r todo src/`, `rtk ls src/`, `rtk read file.ts`, `rtk tree`, `rtk npm test`, `rtk uv run pytest`. Keep the prefix inside chains: `rtk git add . && rtk git commit -m "msg"`. Commands rtk has no filter for run as-is, so the prefix is always safe. Run `rtk help` for the full list. If `rtk` is not installed, run commands normally.
+Command output here is condensed to save tokens: noise is dropped, repeated lines
+collapse, long results truncate. Treat it as the complete result. Run commands
+normally without a prefix, and batch related commands into one call to avoid extra
+turns. Truncated results state their recovery path in their own output. Re-run a
+command as `rtk proxy <cmd>` only when its result is unusable: empty where output
+was clearly expected, contradicting its exit code, or garbled.
 
 ## Verification Loop
 
