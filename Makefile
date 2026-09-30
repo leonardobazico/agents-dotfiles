@@ -14,6 +14,7 @@ TARGET_opencode := $(HOME)/.config/opencode
 	link-agents-md unlink-agents-md relink-agents-md \
 	link-harnesses unlink-harnesses relink-harnesses \
 	link-all unlink-all relink-all \
+	setup-rtk teardown-rtk \
 	cache-tokenizers \
 	help
 
@@ -61,6 +62,12 @@ relink-harnesses: ##@harness Relink every per-harness config package
 		mkdir -p $(TARGET_$(h)) && \
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
+
+setup-rtk: ##@rtk Install rtk and register its hook and OpenCode plugin
+	$(CURDIR)/scripts/setup-rtk.sh
+
+teardown-rtk: ##@rtk Remove the rtk hook and OpenCode plugin
+	$(CURDIR)/scripts/setup-rtk.sh --uninstall
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py

@@ -50,6 +50,10 @@ Conflict resolution:
 - Prefer small, reversible changes over broad rewrites.
 - Explain intent before substantial implementation work.
 
+## Running Commands
+
+Prefix every shell command with `rtk`, a proxy that condenses output to save tokens: `rtk git status`, `rtk grep -r todo src/`, `rtk ls src/`, `rtk read file.ts`, `rtk tree`, `rtk npm test`, `rtk uv run pytest`. Keep the prefix inside chains: `rtk git add . && rtk git commit -m "msg"`. Commands rtk has no filter for run as-is, so the prefix is always safe. Run `rtk help` for the full list. If `rtk` is not installed, run commands normally.
+
 ## Verification Loop
 
 Before making a substantive change, state:
@@ -186,5 +190,5 @@ Precedence: repository `AGENTS.md`, then this file, then any superpowers skill.
 Rules for keeping this file useful over time:
 
 - **Continuous updates.** Update this file whenever a cross-repository mistake recurs or a new cross-cutting convention is established.
-- **Token cap.** Keep this file under 3,000 tokens so it stays effective inside the agent's context window. Trim or relocate content if it grows past the cap.
+- **Token cap.** Keep this file under 3,500 tokens so it stays effective inside the agent's context window. Trim or relocate content if it grows past the cap.
 - **Anti-pattern log.** Record a cross-repository anti-pattern under a `What Not To Do` section here, a repo-specific one under the same heading in that repository's `AGENTS.md`. Create the section on first use; no placeholder up front.

@@ -185,6 +185,40 @@ repo. That is the point of versioning them. Secrets never belong here:
 `harnesses/claude/settings.local.json` is gitignored so a stray copy cannot be
 committed.
 
+## RTK
+
+[rtk](https://github.com/rtk-ai/rtk) is a CLI proxy that condenses command output
+before an agent reads it. `make setup-rtk` installs it via Homebrew when missing,
+then runs `scripts/setup-rtk.sh`. `make teardown-rtk` reverses it. Both are opt-in
+and stay out of `link-all`, because linking this repo on a machine should not
+install a hook that rewrites every Bash call.
+
+The script runs `rtk init --global --hook-only`, not plain `rtk init --global`.
+Plain init appends an `@RTK.md` reference to `~/.claude/CLAUDE.md`, which is this
+repo's hand-maintained `shared/agents-md/AGENTS.md`. The agent-facing rtk rules
+live in that file's `Running Commands` section instead, written by hand and
+committed, so rtk never edits it.
+
+rtk patches `~/.claude/settings.json` through the stow symlink, so its
+`PreToolUse` entry lands in `harnesses/claude/settings.json` and is committed like
+any other Claude Code write. Uninstalling leaves `"PreToolUse": []` behind; drop
+that hunk by hand if it matters.
+
+The script exists for one reason beyond sequencing: `rtk init` overwrites
+`~/.claude/settings.json.bak` unconditionally, and that path holds the
+pre-migration original `scripts/restore-harness.sh` hands back on unlink. The
+script moves it aside and puts it back.
+
+`rtk init --global --codex` is never run. Codex has no command hook, and
+`codex debug prompt-input` confirms it does not expand `@` references in
+`AGENTS.md`, absolute or relative, so the line that mode writes is text no agent
+reads. Codex is covered by the `Running Commands` section instead, which reaches
+it because `~/.codex/AGENTS.md` is stowed from `shared/agents-md`. That section
+also covers Claude Code, where it is redundant but harmless: the hook leaves an
+already-prefixed command alone. Verify a change to it with
+`codex debug prompt-input`, which renders the model-visible prompt without an API
+call.
+
 ## Skills Distribution
 
 Skills are distributed to two paths via GNU Stow:
