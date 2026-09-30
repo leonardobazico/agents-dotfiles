@@ -70,18 +70,18 @@ relink-harnesses: ##@harness Relink every per-harness config package
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
 link-tools: ##@tools Link every tool package to its harness targets
-	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
 		mkdir -p $(TARGET_$(t)_$(h)) && \
 		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
 		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --stow $(h) && )) true
 
 unlink-tools: ##@tools Unlink every tool package and restore backups
-	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
 		stow --verbose --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --delete $(h) && \
 		$(CURDIR)/scripts/restore-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && )) true
 
 relink-tools: ##@tools Relink every tool package (update after changes)
-	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
 		mkdir -p $(TARGET_$(t)_$(h)) && \
 		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
 		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --restow $(h) && )) true

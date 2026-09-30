@@ -70,12 +70,16 @@ for target in link-tools unlink-tools relink-tools; do
 	fi
 done
 
-plan="$(make -C "$repo_root" -n link-tools TOOLS=rtk TOOL_TARGETS_rtk= 2>&1)"
-if printf '%s' "$plan" | grep -q 'stow'; then
-	fail "a tool with no declared harness targets stows nothing"
-else
-	pass "a tool with no declared harness targets stows nothing"
-fi
+for probe in "TOOLS=rtk TOOL_TARGETS_rtk=" "TOOLS=bogus"; do
+	# shellcheck disable=SC2086
+	if plan="$(make -C "$repo_root" -n link-tools $probe 2>&1)"; then
+		fail "link-tools fails loudly for $probe (exited 0: $plan)"
+	elif printf '%s' "$plan" | grep -q 'TOOL_TARGETS'; then
+		pass "link-tools fails loudly for $probe and names the missing variable"
+	else
+		fail "link-tools failure for $probe names TOOL_TARGETS (got: $plan)"
+	fi
+done
 
 plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
 if printf '%s' "$plan" | grep -q 'tools/'; then

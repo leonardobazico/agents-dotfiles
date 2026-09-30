@@ -58,6 +58,13 @@ rtk init --global --codex --auto-patch  # rtk: --codex cannot be combined with -
 
 Fifteen committed lines are cheaper than that.
 
+**The Codex hook needs trust approval.** Codex treats a non-managed hook as
+untrusted until you approve it in a session with `/hooks`; linking does not
+bypass that, so a freshly provisioned machine has the symlink in place and the
+hook inert until you approve it once. Approval is recorded in `~/.codex/config.toml`
+under `[hooks.state]` as a `trusted_hash` of the hook definition, so editing
+`codex/hooks.json` invalidates it and Codex asks again.
+
 **`rtk hook codex` is the native processor.** It emits `updatedInput` plus
 `permissionDecision: "allow"`. It writes nothing and exits 0 when the payload
 omits `permission_mode`, which Codex supplies on turn-scoped events. An earlier
@@ -83,6 +90,11 @@ prompt without an API call. It also confirms Codex does not expand `@` reference
 in `AGENTS.md`, absolute or relative, which is why the `@RTK.md` line that
 `--codex` writes is text no Codex agent reads.
 
-**If rtk is absent**, `harnesses/claude/settings.json` reports a missing command and
-`codex/hooks.json` gives Codex an unresolvable hook command. The Claude hook's
-non-blocking behavior is inferred from Claude's exit-code contract, not tested here.
+**If rtk is absent**, both hooks invoke a command that does not resolve, and the
+shell returns 127. Claude Code blocks a `PreToolUse` tool call only on exit code 2
+or an explicit `permissionDecision: "deny"`; every other non-zero exit is a
+non-blocking error and the tool call proceeds. So an rtk-less machine gets raw
+output and a hook warning, not blocked commands. `make link-all` stows
+`harnesses/claude/settings.json` and therefore its hook entry, so that state is
+reachable without ever running `make setup-rtk`; the Codex hook is not, because
+tool packages stay out of `link-all`.

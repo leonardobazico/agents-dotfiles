@@ -57,7 +57,9 @@ collapse, long results truncate. Treat it as the complete result. Run commands
 normally without a prefix, and batch related commands into one call to avoid extra
 turns. Truncated results state their recovery path in their own output. Re-run a
 command as `rtk proxy <cmd>` only when its result is unusable: empty where output
-was clearly expected, contradicting its exit code, or garbled.
+was clearly expected, contradicting its exit code, or garbled. Where rtk is not
+installed the condensing hook is a no-op and output arrives raw; run commands
+normally either way.
 
 ## Verification Loop
 

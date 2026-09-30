@@ -208,9 +208,10 @@ Read `tools/<name>/README.md` before changing anything a tool touches. It lists
 what the package owns and what it only names, including surfaces that are
 generated and not versioned.
 
-Adding a tool costs a directory plus two Makefile variables, with no new recipe:
-append the name to `TOOLS` and define `TOOL_TARGETS_<name>` and its
-`TARGET_<name>_<harness>` entries.
+Adding a tool costs a directory plus three Makefile variables, with no new recipe:
+append the name to `TOOLS`, list its harnesses in `TOOL_TARGETS_<name>`, and define
+one `TARGET_<name>_<harness>` per harness. A tool listed in `TOOLS` with no
+`TOOL_TARGETS_<name>` fails the tool targets loudly rather than linking nothing.
 
 ## Skills Distribution
 
