@@ -4,16 +4,21 @@ HARNESS_DIR := $(CURDIR)/harnesses
 AGENTS_MD_TARGETS := $(HOME)/.agents $(HOME)/.claude $(HOME)/.codex
 SKILLS_TARGETS    := $(HOME)/.agents/skills $(HOME)/.claude/skills
 
-HARNESSES       := claude opencode codex
+HARNESSES       := claude opencode
 TARGET_claude   := $(HOME)/.claude
 TARGET_opencode := $(HOME)/.config/opencode
-TARGET_codex    := $(HOME)/.codex
+
+TOOLS_DIR        := $(CURDIR)/tools
+TOOLS            := rtk
+TOOL_TARGETS_rtk := codex
+TARGET_rtk_codex := $(HOME)/.codex
 
 .DEFAULT_GOAL := help
 .PHONY: \
 	link-skills unlink-skills relink-skills \
 	link-agents-md unlink-agents-md relink-agents-md \
 	link-harnesses unlink-harnesses relink-harnesses \
+	link-tools unlink-tools relink-tools \
 	link-all unlink-all relink-all \
 	setup-rtk teardown-rtk \
 	cache-tokenizers \
@@ -64,15 +69,32 @@ relink-harnesses: ##@harness Relink every per-harness config package
 		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
 		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
 
-setup-rtk: ##@rtk Install rtk integrations and link the Codex hook
-	$(CURDIR)/scripts/setup-rtk.sh
-	@$(MAKE) link-harnesses HARNESSES=codex TARGET_codex="$(TARGET_codex)" || { \
-		status=$$?; echo "setup-rtk: partial setup; rtk configured but Codex linking failed" >&2; exit $$status; }
+link-tools: ##@tools Link every tool package to its harness targets
+	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+		mkdir -p $(TARGET_$(t)_$(h)) && \
+		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
+		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --stow $(h) && )) true
 
-teardown-rtk: ##@rtk Remove rtk integrations and restore adopted Codex files
-	$(CURDIR)/scripts/setup-rtk.sh --uninstall
-	@$(MAKE) unlink-harnesses HARNESSES=codex TARGET_codex="$(TARGET_codex)" || { \
-		status=$$?; echo "setup-rtk: partial teardown; rtk removed but Codex unlinking failed" >&2; exit $$status; }
+unlink-tools: ##@tools Unlink every tool package and restore backups
+	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+		stow --verbose --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --delete $(h) && \
+		$(CURDIR)/scripts/restore-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && )) true
+
+relink-tools: ##@tools Relink every tool package (update after changes)
+	@$(foreach t,$(TOOLS),$(foreach h,$(TOOL_TARGETS_$(t)), \
+		mkdir -p $(TARGET_$(t)_$(h)) && \
+		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
+		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --restow $(h) && )) true
+
+setup-rtk: ##@rtk Install rtk integrations and link its tool package
+	$(TOOLS_DIR)/rtk/setup-rtk.sh
+	@$(MAKE) link-tools TOOLS=rtk TARGET_rtk_codex="$(TARGET_rtk_codex)" || { \
+		status=$$?; echo "setup-rtk: partial setup; rtk configured but tool linking failed" >&2; exit $$status; }
+
+teardown-rtk: ##@rtk Remove rtk integrations and restore adopted files
+	$(TOOLS_DIR)/rtk/setup-rtk.sh --uninstall
+	@$(MAKE) unlink-tools TOOLS=rtk TARGET_rtk_codex="$(TARGET_rtk_codex)" || { \
+		status=$$?; echo "teardown-rtk: partial teardown; rtk removed but tool unlinking failed" >&2; exit $$status; }
 
 cache-tokenizers: ##@tokens Pre-download tokenizers used by the count-tokens skill
 	$(SHARED_DIR)/skills/count-tokens/scripts/cache_tokenizers.py

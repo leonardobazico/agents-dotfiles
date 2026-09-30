@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
-hooks_json="$repo_root/harnesses/codex/hooks.json"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
+hooks_json="$repo_root/tools/rtk/codex/hooks.json"
 
 status=0
 pass() { echo "ok - $1"; }

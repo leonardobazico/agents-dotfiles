@@ -38,14 +38,6 @@ fi
 
 # rtk setup runs through the script that guards settings.json.bak, never by
 # calling `rtk init` from the recipe directly.
-for target in setup-rtk teardown-rtk; do
-	plan="$(make -C "$repo_root" -n "$target" 2>&1)"
-	if printf '%s' "$plan" | grep -q 'scripts/setup-rtk.sh'; then
-		pass "$target runs through setup-rtk.sh"
-	else
-		fail "$target runs through setup-rtk.sh"
-	fi
-done
 
 test_root="$(mktemp -d)"
 trap 'rm -rf "$test_root"' EXIT
@@ -68,6 +60,38 @@ if PATH="$test_root/bin:$PATH" PROBE_UNEXPECTED="$test_root/unexpected" \
 else
 	fail "link-all links the committed hook without installing rtk or running init"
 fi
+
+for target in link-tools unlink-tools relink-tools; do
+	plan="$(make -C "$repo_root" -n "$target" TOOLS=rtk TARGET_rtk_codex=/tmp/probe 2>&1)"
+	if printf '%s' "$plan" | grep -q 'tools/rtk/codex\|--target=/tmp/probe'; then
+		pass "$target stows the rtk codex package"
+	else
+		fail "$target stows the rtk codex package"
+	fi
+done
+
+plan="$(make -C "$repo_root" -n link-tools TOOLS=rtk TOOL_TARGETS_rtk= 2>&1)"
+if printf '%s' "$plan" | grep -q 'stow'; then
+	fail "a tool with no declared harness targets stows nothing"
+else
+	pass "a tool with no declared harness targets stows nothing"
+fi
+
+plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
+if printf '%s' "$plan" | grep -q 'tools/'; then
+	fail "link-all leaves tool packages alone"
+else
+	pass "link-all leaves tool packages alone"
+fi
+
+for target in setup-rtk teardown-rtk; do
+	plan="$(make -C "$repo_root" -n "$target" 2>&1)"
+	if printf '%s' "$plan" | grep -q 'tools/rtk/setup-rtk.sh'; then
+		pass "$target runs through the relocated setup script"
+	else
+		fail "$target runs through the relocated setup script"
+	fi
+done
 
 if [ "$failures" -ne 0 ]; then
 	echo "$failures failure(s)"

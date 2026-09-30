@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
 test_root="$(mktemp -d)"
 trap 'rm -rf "$test_root"' EXIT
 failures=0
@@ -59,14 +59,14 @@ run_make() {
 	HOME="$case_home" PATH="$test_root/bin:$PATH" PROBE_FAIL="$probe_fail" \
 		PROBE_STAMP="20260930T1200$(printf '%02d' "$invocation")Z" \
 		PROBE_UNEXPECTED="$work/unexpected" \
-		make -C "$repo_root" HARNESSES=claude "$@" "TARGET_codex=$codex_target" \
+		make -C "$repo_root" TOOLS=rtk "$@" "TARGET_rtk_codex=$codex_target" \
 		"TARGET_claude=$work/unrelated-claude" "TARGET_opencode=$work/unrelated-opencode" \
 		> "$output" 2>&1
 }
 
 has_owned_links() {
 	[ -L "$codex_target/hooks.json" ] \
-		&& [ "$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$codex_target/hooks.json")" = "$repo_root/harnesses/codex/hooks.json" ]
+		&& [ "$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$codex_target/hooks.json")" = "$repo_root/tools/rtk/codex/hooks.json" ]
 }
 
 new_case
@@ -144,7 +144,7 @@ fi
 new_case
 printf 'LIVE\n' > "$codex_target/hooks.json"
 printf 'BACKUP\n' > "$codex_target/hooks.json.bak"
-if "$repo_root/scripts/restore-harness.sh" "$repo_root/harnesses/codex" "$codex_target" > "$output" 2>&1 \
+if "$repo_root/scripts/restore-harness.sh" "$repo_root/tools/rtk/codex" "$codex_target" > "$output" 2>&1 \
 	&& [ "$(cat "$codex_target/hooks.json")" = LIVE ] && [ "$(cat "$codex_target/hooks.json.bak")" = BACKUP ] \
 	&& grep -q 'leaving' "$output"; then
 	pass "direct restoration preserves occupied live path and backup"
@@ -177,11 +177,11 @@ exit 99
 SH
 	chmod +x "$work/refuse-rtk"
 	ln -sf "$work/refuse-rtk" "$test_root/bin/rtk"
-	if run_make link-all HARNESSES=codex "AGENTS_MD_TARGETS=$work/agents" "SKILLS_TARGETS=$work/skills" \
-		&& has_owned_links && [ ! -e "$work/unexpected" ]; then
-		pass "link-all reinstalls Codex hooks without running rtk or brew"
+	if run_make link-all HARNESSES=claude "AGENTS_MD_TARGETS=$work/agents" "SKILLS_TARGETS=$work/skills" \
+		&& [ ! -e "$codex_target/hooks.json" ] && [ ! -e "$work/unexpected" ]; then
+		pass "link-all leaves the rtk tool package unlinked"
 	else
-		fail "link-all reinstalls Codex hooks without running rtk or brew"
+		fail "link-all leaves the rtk tool package unlinked"
 	fi
 else
 	fail "prepare link-all case"

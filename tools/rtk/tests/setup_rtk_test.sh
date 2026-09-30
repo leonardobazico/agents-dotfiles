@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
 python3 - "$repo_root" <<'PY'
 import json, os, pathlib, shutil, signal, subprocess, sys, tempfile, time, unittest
 
-SETUP = pathlib.Path(sys.argv[1]) / 'scripts/setup-rtk.sh'
+SETUP = pathlib.Path(sys.argv[1]) / 'tools/rtk/setup-rtk.sh'
 REAL_RTK = shutil.which('rtk')
 STAMP = '20260930T120000Z'
 FAKE = '''#!/usr/bin/env python3
