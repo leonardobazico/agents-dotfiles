@@ -144,13 +144,20 @@ Each `harnesses/<name>/` package stows to exactly one target:
 | `harnesses/opencode` | `~/.config/opencode` |
 
 Targets are not derivable from the harness name: OpenCode reads `~/.config/opencode`,
-not `~/.opencode`. Every harness stow runs with `--no-folding`, so a directory the
-harness manages stays a real directory in the target rather than becoming a symlink
-into this repo. Without it, stow folds `~/.claude/hooks` into a single link, and a
-hook added there by another tool would land inside this working tree.
+not `~/.opencode`.
 
-`make link-harnesses` calls `scripts/adopt-harness.sh` before stowing. For each file
-in the package it inspects the live path and branches:
+Every harness and tool recipe delegates to `scripts/stow-package.sh <action> <package_dir> <target_dir>`, which owns the order the steps run in. `link` and
+`relink` adopt before stowing; `unlink` unstows before restoring. Keeping that
+order in one script is why the recipes are one line each, and why a new package
+axis costs variables rather than another copy of the sequence.
+
+Every stow it runs uses `--no-folding`, so a directory the harness manages stays a
+real directory in the target rather than becoming a symlink into this repo.
+Without it, stow folds `~/.claude/hooks` into a single link, and a hook added
+there by another tool would land inside this working tree.
+
+Adoption runs through `scripts/adopt-harness.sh`. For each file in the package it
+inspects the live path and branches:
 
 | Live path is | Action |
 |--------------|--------|
@@ -167,7 +174,7 @@ An existing `.bak` is never overwritten. If one is present while the live path i
 still a real file, the target fails, because the older backup is the true
 pre-migration state.
 
-`make unlink-harnesses` reverses the migration: it unstows, then calls
+Unlinking reverses the migration: it unstows, then calls
 `scripts/restore-harness.sh` to move each `<name>.bak` back to its live path. A
 live path that something else already occupies keeps its `.bak`, and the script
 says so on stderr instead of overwriting.

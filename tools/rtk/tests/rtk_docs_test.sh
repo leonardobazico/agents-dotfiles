@@ -7,16 +7,13 @@ status=0
 pass() { echo "ok: $1"; }
 fail() { echo "FAIL: $1" >&2; status=1; }
 
-section="$(python3 -c '
-import sys
-text = open(sys.argv[1], encoding="utf-8").read()
-start = text.index("## Running Commands")
-print(text[start:text.index("\n## ", start)])' "$repo_root/shared/agents-md/AGENTS.md")"
-
-if printf '%s' "$section" | grep -qi 'not installed\|absent\|no-op'; then
-	pass "Running Commands covers the machine where rtk is not installed"
+# rtk's hook rewrites commands on its own and its truncated output carries its
+# own `rtk recall` recovery path, so the installed instructions say nothing about
+# running commands. A reinstated section would be prose no agent needs.
+if grep -q '^## Running Commands' "$repo_root/shared/agents-md/AGENTS.md"; then
+	fail "installed AGENTS.md carries a Running Commands section the rtk hook makes redundant"
 else
-	fail "Running Commands claims output is condensed without covering an rtk-less machine"
+	pass "installed AGENTS.md leaves command running to the rtk hook"
 fi
 
 readme="$repo_root/tools/rtk/README.md"

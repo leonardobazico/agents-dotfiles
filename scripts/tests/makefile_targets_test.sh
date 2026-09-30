@@ -7,30 +7,29 @@ failures=0
 fail() { echo "FAIL: $1"; failures=$((failures + 1)); }
 pass() { echo "ok: $1"; }
 
-# Every harness target that stows must adopt first, or a live real file becomes a
-# stow conflict instead of a backup.
-for target in link-harnesses relink-harnesses; do
-	plan="$(make -C "$repo_root" -n "$target" HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
-	if printf '%s' "$plan" | grep -q 'adopt-harness.sh'; then
-		pass "$target adopts before stowing"
+# Adopt-before-stow and restore-after-unstow are stow-package.sh's contract,
+# covered by scripts/tests/stow_package_test.sh. What the Makefile owes is the
+# wiring: each recipe hands that script the right action, package, and target.
+for action in link relink; do
+	plan="$(make -C "$repo_root" -n "$action-harnesses" HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
+	if printf '%s' "$plan" | grep -q "stow-package.sh $action .*harnesses/claude /tmp/probe"; then
+		pass "$action-harnesses delegates to stow-package.sh with the claude package"
 	else
-		fail "$target adopts before stowing"
+		fail "$action-harnesses delegates to stow-package.sh with the claude package"
 	fi
 done
 
-# Unstowing must hand the machine back its pre-migration files, or the harness
-# silently falls back to its defaults.
 plan="$(make -C "$repo_root" -n unlink-harnesses HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
-if printf '%s' "$plan" | grep -q 'restore-harness.sh'; then
-	pass "unlink-harnesses restores backups after unstowing"
+if printf '%s' "$plan" | grep -q 'stow-package.sh unlink .*harnesses/claude /tmp/probe'; then
+	pass "unlink-harnesses delegates to stow-package.sh with the claude package"
 else
-	fail "unlink-harnesses restores backups after unstowing"
+	fail "unlink-harnesses delegates to stow-package.sh with the claude package"
 fi
 
 # A dry run of the meta targets must expand the recipes it delegates to, so the
 # commands can be inspected before any of them run.
 plan="$(make -C "$repo_root" -n link-all HARNESSES=claude TARGET_claude=/tmp/probe 2>&1)"
-if printf '%s' "$plan" | grep -q 'adopt-harness.sh'; then
+if printf '%s' "$plan" | grep -q 'stow-package.sh link .*harnesses/claude'; then
 	pass "make -n link-all expands the harness commands"
 else
 	fail "make -n link-all expands the harness commands"
@@ -63,7 +62,7 @@ fi
 
 for target in link-tools unlink-tools relink-tools; do
 	plan="$(make -C "$repo_root" -n "$target" TOOLS=rtk TARGET_rtk_codex=/tmp/probe 2>&1)"
-	if printf '%s' "$plan" | grep -q 'tools/rtk/codex\|--target=/tmp/probe'; then
+	if printf '%s' "$plan" | grep -q "stow-package.sh ${target%%-*} .*tools/rtk/codex /tmp/probe"; then
 		pass "$target stows the rtk codex package"
 	else
 		fail "$target stows the rtk codex package"

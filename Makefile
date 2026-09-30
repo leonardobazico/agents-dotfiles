@@ -13,6 +13,13 @@ TOOLS            := rtk
 TOOL_TARGETS_rtk := codex
 TARGET_rtk_codex := $(HOME)/.codex
 
+STOW_PACKAGE := $(CURDIR)/scripts/stow-package.sh
+
+# Each tool stows once per harness it targets. Flattening the two axes into
+# <tool>/<harness> pairs lets one foreach drive every tool recipe, and names the
+# pair so $(subst /,_,...) reaches its TARGET_<tool>_<harness> variable.
+TOOL_PAIRS = $(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)),$(t)/$(h)))
+
 .DEFAULT_GOAL := help
 .PHONY: \
 	link-skills unlink-skills relink-skills \
@@ -53,38 +60,22 @@ relink-agents-md: ##@agents Relink agents markdown (update after changes)
 		stow --verbose --dir=$(SHARED_DIR) --target=$(t) --restow agents-md && ) true
 
 link-harnesses: ##@harness Link every per-harness config package
-	@$(foreach h,$(HARNESSES), \
-		mkdir -p $(TARGET_$(h)) && \
-		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
-		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --stow $(h) && ) true
+	@$(foreach h,$(HARNESSES), $(STOW_PACKAGE) link $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
 
 unlink-harnesses: ##@harness Unlink every per-harness config package and restore backups
-	@$(foreach h,$(HARNESSES), \
-		stow --verbose --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --delete $(h) && \
-		$(CURDIR)/scripts/restore-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
+	@$(foreach h,$(HARNESSES), $(STOW_PACKAGE) unlink $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
 
 relink-harnesses: ##@harness Relink every per-harness config package
-	@$(foreach h,$(HARNESSES), \
-		mkdir -p $(TARGET_$(h)) && \
-		$(CURDIR)/scripts/adopt-harness.sh $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && \
-		stow --verbose --no-folding --dir=$(HARNESS_DIR) --target=$(TARGET_$(h)) --restow $(h) && ) true
+	@$(foreach h,$(HARNESSES), $(STOW_PACKAGE) relink $(HARNESS_DIR)/$(h) $(TARGET_$(h)) && ) true
 
 link-tools: ##@tools Link every tool package to its harness targets
-	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
-		mkdir -p $(TARGET_$(t)_$(h)) && \
-		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
-		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --stow $(h) && )) true
+	@$(foreach p,$(TOOL_PAIRS), $(STOW_PACKAGE) link $(TOOLS_DIR)/$(p) $(TARGET_$(subst /,_,$(p))) && ) true
 
 unlink-tools: ##@tools Unlink every tool package and restore backups
-	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
-		stow --verbose --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --delete $(h) && \
-		$(CURDIR)/scripts/restore-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && )) true
+	@$(foreach p,$(TOOL_PAIRS), $(STOW_PACKAGE) unlink $(TOOLS_DIR)/$(p) $(TARGET_$(subst /,_,$(p))) && ) true
 
 relink-tools: ##@tools Relink every tool package (update after changes)
-	@$(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TARGETS_$(t) declared for tool '$(t)'))$(foreach h,$(TOOL_TARGETS_$(t)), \
-		mkdir -p $(TARGET_$(t)_$(h)) && \
-		$(CURDIR)/scripts/adopt-harness.sh $(TOOLS_DIR)/$(t)/$(h) $(TARGET_$(t)_$(h)) && \
-		stow --verbose --no-folding --dir=$(TOOLS_DIR)/$(t) --target=$(TARGET_$(t)_$(h)) --restow $(h) && )) true
+	@$(foreach p,$(TOOL_PAIRS), $(STOW_PACKAGE) relink $(TOOLS_DIR)/$(p) $(TARGET_$(subst /,_,$(p))) && ) true
 
 setup-rtk: ##@rtk Install rtk integrations and link its tool package
 	$(TOOLS_DIR)/rtk/setup-rtk.sh
