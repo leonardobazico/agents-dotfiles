@@ -18,9 +18,8 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import tiktoken
-from tokenizers import Tokenizer
-
 from count_tokens import CROSS_REPO, CROSS_REVISION, FAST_ENCODING
+from tokenizers import Tokenizer
 
 DEFAULT_REVISION = "main"
 

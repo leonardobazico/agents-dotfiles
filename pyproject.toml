@@ -1,0 +1,16 @@
+# Tool configuration only. This repo ships standalone scripts, not a package,
+# so there is no [project] table and nothing here is installable.
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# The sibling import needs the sys.path insert above it to resolve.
+"shared/skills/count-tokens/scripts/cache_tokenizers.py" = ["E402"]
+# Test clarity outranks DRY: nested `with` and per-test temp files read better
+# than the collapsed forms these rules ask for.
+"**/tests/**" = ["SIM115", "SIM117"]

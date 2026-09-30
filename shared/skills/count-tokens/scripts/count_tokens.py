@@ -55,9 +55,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--level",
         choices=("fast", "cross", "exact"),
         default="fast",
-        help=f"fast: OpenAI {FAST_ENCODING}. cross: {CROSS_REPO}. exact: --tokenizer repo.",
+        help=(
+            f"fast: OpenAI {FAST_ENCODING}. cross: {CROSS_REPO}. "
+            "exact: --tokenizer repo."
+        ),
     )
-    parser.add_argument("--tokenizer", help="HuggingFace repo id, implies --level exact")
+    parser.add_argument(
+        "--tokenizer", help="HuggingFace repo id, implies --level exact"
+    )
     parser.add_argument("--json", action="store_true", help="emit JSON")
     parser.add_argument("--budget", type=int, help="exit 1 when the total exceeds this")
     args = parser.parse_args(argv)

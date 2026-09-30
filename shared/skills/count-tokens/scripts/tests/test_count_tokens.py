@@ -91,11 +91,15 @@ class BuildCounterTests(unittest.TestCase):
             calls.append((repo, revision))
             return FakeTokenizer()
 
-        with patch("tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)):
+        with patch(
+            "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
+        ):
             name, count = count_tokens.build_counter("cross", None)
 
         self.assertEqual(name, count_tokens.CROSS_REPO)
-        self.assertEqual(calls, [(count_tokens.CROSS_REPO, count_tokens.CROSS_REVISION)])
+        self.assertEqual(
+            calls, [(count_tokens.CROSS_REPO, count_tokens.CROSS_REVISION)]
+        )
         self.assertEqual(count("a b c"), 3)
         self.assertEqual(encode_calls, [False])
 
@@ -115,7 +119,9 @@ class BuildCounterTests(unittest.TestCase):
             calls.append((repo, revision))
             return FakeTokenizer()
 
-        with patch("tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)):
+        with patch(
+            "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
+        ):
             name, count = count_tokens.build_counter("exact", "some/repo")
 
         self.assertEqual(name, "some/repo")
@@ -186,9 +192,16 @@ class MainTests(unittest.TestCase):
 
     def test_tokenizer_load_failure_exits_error(self):
         err = io.StringIO()
-        with patch.object(count_tokens, "build_counter", side_effect=RuntimeError("boom")):
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
-                exit_code = count_tokens.main(["ignored", "--level", "exact", "--tokenizer", "x"])
+        with (
+            patch.object(
+                count_tokens, "build_counter", side_effect=RuntimeError("boom")
+            ),
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(err),
+        ):
+            exit_code = count_tokens.main(
+                ["ignored", "--level", "exact", "--tokenizer", "x"]
+            )
         self.assertEqual(exit_code, count_tokens.EXIT_ERROR)
         self.assertIn("cannot load tokenizer", err.getvalue())
 
