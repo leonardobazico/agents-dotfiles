@@ -151,9 +151,6 @@ inside a unit you are already editing, pick one of three (comments elsewhere in 
   carries what the code cannot recover on its own: an external constraint, an upstream bug or platform quirk, a
   non-obvious business rule, or an explicitly unverified assumption. Say why, never what.
 
-Doc-comment forms per stack: Javadoc and KDoc (Java/Kotlin), TSDoc or JSDoc (TypeScript), godoc (Go), docstrings
-(Python). The default above still governs when to write one.
-
 #### Test code exception
 
 - `// Arrange`, `// Act`, `// Assert` comments are allowed in test code to structure cases.
