@@ -151,10 +151,6 @@ inside a unit you are already editing, pick one of three (comments elsewhere in 
   carries what the code cannot recover on its own: an external constraint, an upstream bug or platform quirk, a
   non-obvious business rule, or an explicitly unverified assumption. Say why, never what.
 
-Never delete a comment carrying a constraint until a name or a test has taken over its job. When in doubt between naming
-and keeping, try the name first; if no name fits, the comment has earned its place. When naming and testing both fit, do
-both: the name goes in the code, the rule goes in a test name.
-
 Doc-comment forms per stack: Javadoc and KDoc (Java/Kotlin), TSDoc or JSDoc (TypeScript), godoc (Go), docstrings
 (Python). The default above still governs when to write one.
 
