@@ -1,5 +1,5 @@
 {
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {
@@ -28,7 +28,11 @@
   },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
-    "i-have-adhd@i-have-adhd": true
+    "i-have-adhd@i-have-adhd": true,
+    "sales@synced": false,
+    "marketing@synced": false,
+    "productivity@synced": false,
+    "cowork-plugin-management@synced": false
   },
   "extraKnownMarketplaces": {
     "i-have-adhd": {
