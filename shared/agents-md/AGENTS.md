@@ -186,6 +186,7 @@ Style feedback is secondary.
 ## Safety Rules
 
 - Do not revert unrelated user changes without explicit instruction.
+- Never add `Co-Authored-By` trailers to commit messages.
 - Avoid destructive git or filesystem operations unless requested.
 - Respect `.gitignore`. Never use `git add --force` (or `-f`) to stage ignored files.
 - Do not commit superpowers-generated working files (e.g. specs, plans) unless the user explicitly asks.
