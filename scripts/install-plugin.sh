@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-	echo "usage: $(basename "$0") <claude|codex> <plugin> <source>" >&2
+	echo "usage: $(basename "$0") <claude|codex|opencode> <plugin> <source>" >&2
 	exit 2
 }
 
@@ -12,7 +12,7 @@ plugin="$2"
 source_ref="$3"
 
 case "$harness" in
-claude | codex) ;;
+claude | codex | opencode) ;;
 *)
 	echo "install-plugin.sh: unsupported harness '$harness'" >&2
 	exit 1
@@ -23,6 +23,58 @@ repo="${source_ref%@*}"
 if ! [[ "$repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
 	echo "install-plugin.sh: source '$source_ref' is not an owner/repo reference" >&2
 	exit 1
+fi
+
+# OpenCode exposes no plugin CLI, and upstream's package has no entry point a
+# config-level plugin spec could import, so this harness installs by copying the
+# skill and command out of a pinned checkout.
+if [ "$harness" = opencode ]; then
+	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+	config_root="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+	cache_root="${PLUGIN_CACHE_DIR:-$script_dir/../.cache/plugins}"
+	checkout="$cache_root/${repo##*/}"
+	ref="HEAD"
+	case "$source_ref" in *@*) ref="${source_ref##*@}" ;; esac
+
+	if ! command -v git > /dev/null 2>&1; then
+		echo "install-plugin.sh: git is not on PATH; run 'make install-dependencies' first" >&2
+		exit 1
+	fi
+
+	stage() {
+		local name="$1"
+		shift
+		if ! "$@"; then
+			echo "install-plugin.sh: opencode $name step failed: $*" >&2
+			exit 1
+		fi
+	}
+
+	if [ -d "$checkout/.git" ]; then
+		stage fetch git -C "$checkout" fetch --quiet --tags origin
+	else
+		mkdir -p "$cache_root"
+		stage clone git clone --quiet "https://github.com/$repo" "$checkout"
+	fi
+	stage checkout git -C "$checkout" checkout --quiet --force "$ref"
+
+	# Copy to a sibling path then rename, so an interrupted run never leaves a
+	# half-written skill where OpenCode would read it.
+	install_file() {
+		local src="$1" dest="$2"
+		if [ ! -f "$src" ]; then
+			echo "install-plugin.sh: opencode copy step failed: $src is absent from the checkout" >&2
+			exit 1
+		fi
+		mkdir -p "$(dirname "$dest")"
+		stage copy cp "$src" "$dest.tmp"
+		stage copy mv "$dest.tmp" "$dest"
+		stage copy cmp -s "$src" "$dest"
+	}
+
+	install_file "$checkout/skills/$plugin/SKILL.md" "$config_root/skills/$plugin/SKILL.md"
+	install_file "$checkout/.opencode/command/$plugin.md" "$config_root/commands/$plugin.md"
+	exit 0
 fi
 
 if ! command -v "$harness" > /dev/null 2>&1; then

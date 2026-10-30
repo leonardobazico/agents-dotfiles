@@ -237,6 +237,9 @@ and `skip` records one deliberately left out. Adding a plugin costs a manifest r
 Read `plugins/README.md` before changing anything a plugin touches. It lists the per-harness commands, the surfaces this
 repo names but does not own, and why there is no uninstall target.
 
+OpenCode has no plugin CLI, so its rows install by copying the skill and command out of a pinned checkout rather than
+stowing them; `plugins/README.md` names the destinations.
+
 Plugin state is imperative and machine-local, so stow cannot own it. One exception leaks into the repo:
 `claude plugin marketplace add` and `claude plugin install` write `extraKnownMarketplaces` and `enabledPlugins` into
 `~/.claude/settings.json`, which is the stow symlink, so installing a Claude Code plugin produces a committed diff in
