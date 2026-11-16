@@ -115,6 +115,14 @@ else
   pass "link-all installs nothing"
 fi
 
+plan="$(make -C "$repo_root" -n setup-dev 2>&1)"
+if printf '%s' "$plan" | grep -q 'scripts/install-dependencies.sh' &&
+  printf '%s' "$plan" | grep -q 'pre-commit install --install-hooks'; then
+  pass "setup-dev installs dependencies and the pre-commit hooks"
+else
+  fail "setup-dev installs dependencies and the pre-commit hooks (got: $plan)"
+fi
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures failure(s)"
   exit 1

@@ -31,6 +31,7 @@ TOOL_PAIRS = $(foreach t,$(TOOLS),$(if $(TOOL_TARGETS_$(t)),,$(error no TOOL_TAR
 	link-all unlink-all relink-all \
 	setup-rtk teardown-rtk \
 	install-dependencies \
+	setup-dev \
 	install-plugins \
 	cache-tokenizers \
 	help
@@ -93,6 +94,9 @@ teardown-rtk: ##@rtk Remove rtk integrations and restore adopted files
 
 install-dependencies: ##@setup Install harness CLIs and repo tooling via Homebrew
 	$(INSTALL_DEPENDENCIES)
+
+setup-dev: install-dependencies ##@setup Install repo tooling and the pre-commit hooks
+	pre-commit install --install-hooks
 
 install-plugins: ##@plugins Install every plugin the manifest marks auto
 	$(INSTALL_PLUGINS)

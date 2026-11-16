@@ -75,10 +75,10 @@ define `TARGET_<name>`.
 
 ## Pre-Commit
 
-Install `pre-commit` with your preferred Python tool, then enable the hooks:
+Set up a fresh clone with one command. It runs `make install-dependencies`, then `pre-commit install --install-hooks`:
 
 ```bash
-pre-commit install --install-hooks
+make setup-dev
 ```
 
 That wires three stages, named by `default_install_hook_types`: `pre-commit` for the formatters, linters, and test
