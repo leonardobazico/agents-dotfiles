@@ -30,7 +30,7 @@ def main(argv: list[str]) -> int:
     try:
         tiktoken.get_encoding(FAST_ENCODING)
         print(f"cached tiktoken/{FAST_ENCODING}")
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
         print(f"FAILED tiktoken/{FAST_ENCODING}: {error}", file=sys.stderr)
         failed = True
 
@@ -39,7 +39,7 @@ def main(argv: list[str]) -> int:
         try:
             Tokenizer.from_pretrained(repo, revision=revision)
             print(f"cached {repo}")
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
             print(f"FAILED {repo}: {error}", file=sys.stderr)
             failed = True
 

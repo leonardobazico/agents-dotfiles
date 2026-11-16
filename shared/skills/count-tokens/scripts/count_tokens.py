@@ -85,7 +85,7 @@ def main(argv: list[str]) -> int:
 
     try:
         name, count_tokens = build_counter(args.level, args.tokenizer)
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
         print(f"count_tokens: cannot load tokenizer: {error}", file=sys.stderr)
         return EXIT_ERROR
 
