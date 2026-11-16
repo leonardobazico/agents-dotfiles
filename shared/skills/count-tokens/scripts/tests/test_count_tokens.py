@@ -3,10 +3,9 @@ import io
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
 import count_tokens
-from tokenizer_loader import TokenizerLoader, TokenizerUnavailableError
+from tokenizer_loader import TokenizerLoader
 
 
 class ParseArgsTests(unittest.TestCase):
@@ -60,8 +59,8 @@ class ReadSourceTests(unittest.TestCase):
             Path(path).unlink()
 
     def test_reads_stdin(self):
-        with patch("sys.stdin", io.StringIO("hello stdin")):
-            self.assertEqual(count_tokens.read_source("-"), "hello stdin")
+        stdin = io.StringIO("hello stdin")
+        self.assertEqual(count_tokens.read_source("-", stdin), "hello stdin")
 
     def test_missing_file_raises_oserror(self):
         with self.assertRaises(OSError):
@@ -69,68 +68,30 @@ class ReadSourceTests(unittest.TestCase):
 
 
 class BuildCounterTests(unittest.TestCase):
-    def test_fast_level_counts_with_o200k_encoding(self):
-        name, count = count_tokens.build_counter("fast", None, TokenizerLoader.create())
+    def test_fast_level_uses_fast_encoding(self):
+        loader = TokenizerLoader.create_null()
+        loads = loader.track_loads()
+        name, count = count_tokens.build_counter("fast", None, loader)
         self.assertEqual(name, count_tokens.FAST_ENCODING)
-        self.assertEqual(count("hello world"), 2)
+        self.assertEqual(loads, [(count_tokens.FAST_ENCODING, None)])
+        self.assertEqual(count("a b"), 2)
 
     def test_cross_level_uses_pinned_repo_and_revision(self):
-        calls = []
-        encode_calls = []
-
-        class FakeEncoding:
-            def __init__(self, text):
-                self.ids = text.split()
-
-        class FakeTokenizer:
-            @staticmethod
-            def encode(text, add_special_tokens):
-                encode_calls.append(add_special_tokens)
-                return FakeEncoding(text)
-
-        def fake_from_pretrained(repo, revision=None):
-            calls.append((repo, revision))
-            return FakeTokenizer()
-
-        with patch(
-            "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
-        ):
-            name, count = count_tokens.build_counter(
-                "cross", None, TokenizerLoader.create()
-            )
-
+        loader = TokenizerLoader.create_null()
+        loads = loader.track_loads()
+        name, count = count_tokens.build_counter("cross", None, loader)
         self.assertEqual(name, count_tokens.CROSS_REPO)
         self.assertEqual(
-            calls, [(count_tokens.CROSS_REPO, count_tokens.CROSS_REVISION)]
+            loads, [(count_tokens.CROSS_REPO, count_tokens.CROSS_REVISION)]
         )
         self.assertEqual(count("a b c"), 3)
-        self.assertEqual(encode_calls, [False])
 
     def test_exact_level_uses_given_tokenizer_at_main_revision(self):
-        calls = []
-
-        class FakeEncoding:
-            def __init__(self, text):
-                self.ids = text.split()
-
-        class FakeTokenizer:
-            @staticmethod
-            def encode(text, add_special_tokens):
-                return FakeEncoding(text)
-
-        def fake_from_pretrained(repo, revision=None):
-            calls.append((repo, revision))
-            return FakeTokenizer()
-
-        with patch(
-            "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
-        ):
-            name, count = count_tokens.build_counter(
-                "exact", "some/repo", TokenizerLoader.create()
-            )
-
+        loader = TokenizerLoader.create_null()
+        loads = loader.track_loads()
+        name, count = count_tokens.build_counter("exact", "some/repo", loader)
         self.assertEqual(name, "some/repo")
-        self.assertEqual(calls, [("some/repo", "main")])
+        self.assertEqual(loads, [("some/repo", "main")])
         self.assertEqual(count("a b"), 2)
 
 
@@ -196,21 +157,12 @@ class MainTests(unittest.TestCase):
         self.assertIn("/no/such/path.txt", err.getvalue())
 
     def test_tokenizer_load_failure_exits_error(self):
+        loader = TokenizerLoader.create_null(failure=OSError("offline"))
         err = io.StringIO()
-        with (
-            patch.object(
-                count_tokens,
-                "build_counter",
-                side_effect=TokenizerUnavailableError("boom"),
-            ),
-            contextlib.redirect_stdout(io.StringIO()),
-            contextlib.redirect_stderr(err),
-        ):
-            exit_code = count_tokens.main(
-                ["ignored", "--level", "exact", "--tokenizer", "x"]
-            )
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            exit_code = count_tokens.main(["ignored", "--tokenizer", "x"], loader)
         self.assertEqual(exit_code, count_tokens.EXIT_ERROR)
-        self.assertIn("cannot load tokenizer", err.getvalue())
+        self.assertIn("cannot load tokenizer: offline", err.getvalue())
 
 
 if __name__ == "__main__":

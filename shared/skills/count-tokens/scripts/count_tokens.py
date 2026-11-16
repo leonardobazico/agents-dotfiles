@@ -14,6 +14,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import TextIO
 
 from tokenizer_loader import TokenizerLoader, TokenizerUnavailableError
 
@@ -35,9 +36,9 @@ def build_counter(level: str, tokenizer: str | None, loader: TokenizerLoader):
     return repo, loader.load_pretrained(repo, revision)
 
 
-def read_source(source: str) -> str:
+def read_source(source: str, stdin: TextIO | None = None) -> str:
     if source == "-":
-        return sys.stdin.read()
+        return (stdin or sys.stdin).read()
     return Path(source).read_text(encoding="utf-8")
 
 
