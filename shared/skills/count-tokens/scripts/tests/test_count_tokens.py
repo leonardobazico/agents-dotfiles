@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import count_tokens
+from tokenizer_loader import TokenizerLoader, TokenizerUnavailableError
 
 
 class ParseArgsTests(unittest.TestCase):
@@ -69,7 +70,7 @@ class ReadSourceTests(unittest.TestCase):
 
 class BuildCounterTests(unittest.TestCase):
     def test_fast_level_counts_with_o200k_encoding(self):
-        name, count = count_tokens.build_counter("fast", None)
+        name, count = count_tokens.build_counter("fast", None, TokenizerLoader.create())
         self.assertEqual(name, count_tokens.FAST_ENCODING)
         self.assertEqual(count("hello world"), 2)
 
@@ -94,7 +95,9 @@ class BuildCounterTests(unittest.TestCase):
         with patch(
             "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
         ):
-            name, count = count_tokens.build_counter("cross", None)
+            name, count = count_tokens.build_counter(
+                "cross", None, TokenizerLoader.create()
+            )
 
         self.assertEqual(name, count_tokens.CROSS_REPO)
         self.assertEqual(
@@ -122,7 +125,9 @@ class BuildCounterTests(unittest.TestCase):
         with patch(
             "tokenizers.Tokenizer.from_pretrained", staticmethod(fake_from_pretrained)
         ):
-            name, count = count_tokens.build_counter("exact", "some/repo")
+            name, count = count_tokens.build_counter(
+                "exact", "some/repo", TokenizerLoader.create()
+            )
 
         self.assertEqual(name, "some/repo")
         self.assertEqual(calls, [("some/repo", "main")])
@@ -194,7 +199,9 @@ class MainTests(unittest.TestCase):
         err = io.StringIO()
         with (
             patch.object(
-                count_tokens, "build_counter", side_effect=RuntimeError("boom")
+                count_tokens,
+                "build_counter",
+                side_effect=TokenizerUnavailableError("boom"),
             ),
             contextlib.redirect_stdout(io.StringIO()),
             contextlib.redirect_stderr(err),

@@ -17,29 +17,29 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import tiktoken
 from count_tokens import CROSS_REPO, CROSS_REVISION, FAST_ENCODING
-from tokenizers import Tokenizer
+from tokenizer_loader import TokenizerLoader, TokenizerUnavailableError
 
 DEFAULT_REVISION = "main"
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str], loader: TokenizerLoader | None = None) -> int:
+    loader = loader or TokenizerLoader.create()
     failed = False
 
     try:
-        tiktoken.get_encoding(FAST_ENCODING)
+        loader.load_encoding(FAST_ENCODING)
         print(f"cached tiktoken/{FAST_ENCODING}")
-    except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
+    except TokenizerUnavailableError as error:
         print(f"FAILED tiktoken/{FAST_ENCODING}: {error}", file=sys.stderr)
         failed = True
 
     repos = [(CROSS_REPO, CROSS_REVISION)] + [(repo, DEFAULT_REVISION) for repo in argv]
     for repo, revision in repos:
         try:
-            Tokenizer.from_pretrained(repo, revision=revision)
+            loader.load_pretrained(repo, revision)
             print(f"cached {repo}")
-        except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
+        except TokenizerUnavailableError as error:
             print(f"FAILED {repo}: {error}", file=sys.stderr)
             failed = True
 

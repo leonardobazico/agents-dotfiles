@@ -1,7 +1,7 @@
 # count-tokens
 
 Deterministic token counting. The skill is thin on purpose: all logic lives in `scripts/count_tokens.py` so repeated
-runs return the same number.
+runs return the same number. `scripts/tokenizer_loader.py` is the only code that calls `tiktoken` and `tokenizers`.
 
 Determinism holds for a fixed dependency and model revision. Dependencies carry upper bounds and the `cross` tokenizer
 is pinned to an explicit HuggingFace revision, so an upstream push cannot silently change your counts. A tokenizer

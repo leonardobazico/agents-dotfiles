@@ -15,6 +15,8 @@ import json
 import sys
 from pathlib import Path
 
+from tokenizer_loader import TokenizerLoader, TokenizerUnavailableError
+
 FAST_ENCODING = "o200k_base"
 CROSS_REPO = "Qwen/Qwen3-8B"
 CROSS_REVISION = "b968826d9c46dd6066d109eabc6255188de91218"
@@ -24,19 +26,13 @@ EXIT_OVER_BUDGET = 1
 EXIT_ERROR = 2
 
 
-def build_counter(level: str, tokenizer: str | None):
+def build_counter(level: str, tokenizer: str | None, loader: TokenizerLoader):
     if level == "fast":
-        import tiktoken
-
-        encoding = tiktoken.get_encoding(FAST_ENCODING)
-        return FAST_ENCODING, lambda text: len(encoding.encode(text))
-
-    from tokenizers import Tokenizer
+        return FAST_ENCODING, loader.load_encoding(FAST_ENCODING)
 
     repo = tokenizer if level == "exact" else CROSS_REPO
     revision = "main" if level == "exact" else CROSS_REVISION
-    loaded = Tokenizer.from_pretrained(repo, revision=revision)
-    return repo, lambda text: len(loaded.encode(text, add_special_tokens=False).ids)
+    return repo, loader.load_pretrained(repo, revision)
 
 
 def read_source(source: str) -> str:
@@ -80,12 +76,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return args
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str], loader: TokenizerLoader | None = None) -> int:
     args = parse_args(argv)
+    loader = loader or TokenizerLoader.create()
 
     try:
-        name, count_tokens = build_counter(args.level, args.tokenizer)
-    except Exception as error:  # noqa: BLE001 - CLI boundary: report every failure, exit non-zero
+        name, count_tokens = build_counter(args.level, args.tokenizer, loader)
+    except TokenizerUnavailableError as error:
         print(f"count_tokens: cannot load tokenizer: {error}", file=sys.stderr)
         return EXIT_ERROR
 
