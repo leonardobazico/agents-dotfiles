@@ -56,9 +56,9 @@ Anything else fails.
 
 ### OpenCode
 
-OpenCode has no plugin CLI, and upstream's `package.json` is `"private": true` with no `main` and no `exports`, so a
-`plugin` entry in `opencode.json` has nothing to import. The installer therefore uses upstream's copy route, which
-installs the skill and the slash command and nothing else:
+The OpenCode `i-have-adhd` package has no loadable plugin entry point, so its manifest installer copies the skill and
+slash command and nothing else. Superpowers is a plugin package loaded through OpenCode V2's `plugins` field; this repo
+records it as `manual` in the manifest and pins it in `harnesses/opencode/opencode.json`:
 
 | Source in the checkout | Destination |
 | -- | -- |
@@ -77,7 +77,8 @@ no CLI listing to confirm against, so the post-condition is both destination fil
 
 Upstream's always-on mode is deliberately not installed: it needs the vendor-plus-loader route and a
 `<config>/.i-have-adhd-always` flag, and this repo configures neither. OpenCode may still invoke an installed skill on
-its own, which `permission.skill` in `harnesses/opencode/opencode.json` keeps visible by asking first.
+its own, which the V2 `permissions` rule for `skill` with effect `ask` in `harnesses/opencode/opencode.json` keeps
+visible by asking first.
 
 ## Named, not owned
 

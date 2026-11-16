@@ -93,7 +93,7 @@ pre-commit run --all-files
 Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-formatted, in this initial setup.
 
 Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh` (Python) and
-`scripts/run_tests.sh` (shell).
+`scripts/run_tests.sh` (shell and Python repository script tests).
 
 Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g.
 `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
@@ -237,8 +237,9 @@ and `skip` records one deliberately left out. Adding a plugin costs a manifest r
 Read `plugins/README.md` before changing anything a plugin touches. It lists the per-harness commands, the surfaces this
 repo names but does not own, and why there is no uninstall target.
 
-OpenCode has no plugin CLI, so its rows install by copying the skill and command out of a pinned checkout rather than
-stowing them; `plugins/README.md` names the destinations.
+OpenCode's `i-have-adhd` auto row installs by copying the skill and command out of a pinned checkout rather than stowing
+them. Superpowers is a manual package loaded through V2's `plugins` field in `harnesses/opencode/opencode.json`;
+`plugins/README.md` names the copy destinations.
 
 Plugin state is imperative and machine-local, so stow cannot own it. One exception leaks into the repo:
 `claude plugin marketplace add` and `claude plugin install` write `extraKnownMarketplaces` and `enabledPlugins` into

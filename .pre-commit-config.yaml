@@ -59,8 +59,8 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: shell-tests
-        name: shell test suite
+      - id: script-tests
+        name: repository script tests
         entry: scripts/run_tests.sh
         language: system
         pass_filenames: false

@@ -1,16 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "superpowers@git+https://github.com/obra/superpowers.git#v6.2.0"
+  "plugins": [
+    "superpowers@git+https://github.com/obra/superpowers.git#v7.0.2"
   ],
-  "permission": {
-    "skill": {
-      "*": "ask"
-    },
-    "bash": {
-      "git commit *": "deny",
-      "git push *": "deny",
-      "aws *": "deny"
-    }
-  }
+  "permissions": [
+    { "action": "skill", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "git commit *", "effect": "ask" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "aws *", "effect": "deny" },
+    { "action": "external_directory", "resource": "*", "effect": "ask" }
+  ]
 }
