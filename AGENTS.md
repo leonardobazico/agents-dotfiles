@@ -48,9 +48,11 @@ target.
 
 ## Dependencies
 
-`make install-dependencies` installs the harness CLIs and the repo toolchain through Homebrew: the `opencode`, `stow`,
-`gitleaks`, and `pre-commit` formulae, and the `claude-code` and `codex` casks. The lists live in
-`scripts/install-dependencies.sh` rather than in Makefile variables, because no recipe loops over them.
+`make install-dependencies` installs the harness CLIs and the repo toolchain: the `opencode`, `stow`, `gitleaks`,
+`pre-commit`, `ruff`, and `jscpd` formulae and the `claude-code` and `codex` casks through Homebrew, then
+`habit-hooks[python]` and `deptry` as `uv` tools. Those two come from PyPI because the habit-hooks tap publishes no
+bottle attestation and `deptry` has no formula. The lists live in `scripts/install-dependencies.sh` rather than in
+Makefile variables, because no recipe loops over them.
 
 `brew install` exits 0 for an already-installed package, so the target is re-runnable. Like `setup-rtk`, it stays out of
 `link-all`: installing software is deliberate.
@@ -97,8 +99,19 @@ Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-for
 Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh` (Python) and
 `scripts/run_tests.sh` (shell and Python repository script tests).
 
+A third local hook runs `habit-hooks --since HEAD`, which checks the uncommitted work (staged, unstaged, and untracked)
+for structural smells such as oversized functions and duplication. `.habit-hooks/config.toml` enables the `python` and
+`generic` plugins; `.jscpd.json` points the duplication check at the repo's Python and shell instead of jscpd's default
+`src/`; `.habit-hooks/snooze.json` holds the findings that predate the hook. A missing detector fails the run rather
+than passing it.
+
 Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g.
 `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.
+
+## Habit Hooks
+
+Run `habit-hooks` before reporting work done, and fix every finding it fails on. Snooze a finding only when the user
+agrees.
 
 ## Adding a New Skill
 

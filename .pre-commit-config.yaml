@@ -66,6 +66,13 @@ repos:
         pass_filenames: false
         always_run: true
 
+      - id: habit-hooks
+        name: habit-hooks (uncommitted work)
+        entry: habit-hooks --since HEAD
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: gitleaks-staged
         name: gitleaks (staged changes)
         entry: gitleaks git --staged --no-banner

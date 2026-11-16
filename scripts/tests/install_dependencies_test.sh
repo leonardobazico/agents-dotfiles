@@ -23,18 +23,31 @@ SH
 	chmod +x "$dir/brew"
 }
 
+make_uv_stub() {
+	local dir="$1" exit_code="$2"
+	mkdir -p "$dir"
+	cat > "$dir/uv" <<SH
+#!/bin/sh
+printf '%s\n' "\$*" >> "\$UV_LOG"
+exit $exit_code
+SH
+	chmod +x "$dir/uv"
+}
+
 bin="$test_root/bin"
 make_brew_stub "$bin" 0
+make_uv_stub "$bin" 0
+uv_log="$test_root/uv.log"
 log="$test_root/brew.log"
 
-if BREW_LOG="$log" PATH="$bin:$PATH" "$script" > "$test_root/out" 2>&1; then
+if BREW_LOG="$log" UV_LOG="$uv_log" PATH="$bin:$PATH" "$script" > "$test_root/out" 2>&1; then
 	pass "install-dependencies.sh exits 0 when brew succeeds"
 else
 	fail "install-dependencies.sh exits 0 when brew succeeds"
 	cat "$test_root/out"
 fi
 
-for formula in opencode stow gitleaks pre-commit; do
+for formula in opencode stow gitleaks pre-commit ruff jscpd; do
 	if grep -q "^install .*\\b$formula\\b" "$log" && ! grep -q "^install --cask .*\\b$formula\\b" "$log"; then
 		pass "$formula is installed as a formula"
 	else
@@ -54,6 +67,23 @@ if [ "$(grep -c '^install' "$log")" -eq 2 ]; then
 	pass "brew is invoked once per kind"
 else
 	fail "brew is invoked once per kind (got $(grep -c '^install' "$log"))"
+fi
+
+for package in "habit-hooks[python]" deptry; do
+	if grep -qxF "tool install $package" "$uv_log"; then
+		pass "$package is installed from PyPI"
+	else
+		fail "$package is installed from PyPI (got: $(cat "$uv_log"))"
+	fi
+done
+
+failing_uv_bin="$test_root/failing-uv-bin"
+make_brew_stub "$failing_uv_bin" 0
+make_uv_stub "$failing_uv_bin" 1
+if BREW_LOG="$test_root/failing-uv-brew.log" UV_LOG="$test_root/failing-uv.log" PATH="$failing_uv_bin:$PATH" "$script" >/dev/null 2>&1; then
+	fail "a uv failure propagates"
+else
+	pass "a uv failure propagates"
 fi
 
 # A real brew failure must not be swallowed.
