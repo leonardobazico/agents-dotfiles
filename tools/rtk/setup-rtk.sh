@@ -127,5 +127,5 @@ if [ "$mode" = "--uninstall" ]; then
   run_init --global --uninstall
 else
   run_init --global --hook-only --auto-patch --agent claude
-  run_init --global --opencode
+  run_init --global --opencode --hook-only --auto-patch
 fi

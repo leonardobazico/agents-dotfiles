@@ -31,6 +31,16 @@ class IntegrationTests(SetupRtkCase):
                 not bool(args), (self.root / ".config/opencode/plugins/rtk.ts").exists()
             )
 
+    @unittest.skipUnless(REAL_RTK, "real rtk not installed")
+    def test_real_rtk_install_leaves_claude_instructions_untouched(self):
+        instructions = self.root / ".claude/CLAUDE.md"
+        instructions.write_text("# user instructions\n")
+        result = self.run_setup(real=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual("# user instructions\n", instructions.read_text())
+        self.assertFalse((self.root / ".claude/RTK.md").exists())
+        self.assertTrue((self.root / ".config/opencode/plugins/rtk.ts").exists())
+
 
 if __name__ == "__main__":
     unittest.main(argv=["setup_rtk_integration_test.py"], verbosity=2)
