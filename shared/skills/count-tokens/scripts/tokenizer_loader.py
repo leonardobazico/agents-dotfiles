@@ -1,5 +1,3 @@
-"""The one place tiktoken and tokenizers are called; callers see one error type."""
-
 from __future__ import annotations
 
 from collections.abc import Callable
