@@ -10,9 +10,9 @@ for t in "$script_dir"/tests/*_test.sh "$repo_root"/tools/*/tests/*_test.sh; do
   echo "== $(basename "$t")"
   bash "$t" || status=1
 done
-for t in "$script_dir"/tests/*_test.py "$repo_root"/tools/*/tests/*_test.py; do
-  [ -e "$t" ] || continue
-  echo "== $(basename "$t")"
-  python3 "$t" || status=1
+for dir in "$script_dir/tests" "$repo_root"/tools/*/tests; do
+  compgen -G "$dir/*_test.py" >/dev/null || continue
+  echo "== ${dir#"$repo_root"/}"
+  python3 -m unittest discover -s "$dir" -t "$dir" -p '*_test.py' || status=1
 done
 exit $status
