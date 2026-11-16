@@ -80,7 +80,7 @@ package managers remain user-managed and are not replaced or version-checked.
 
 **No `RTK.md`.** Without `--hook-only`, `--opencode` also runs RTK's default Claude setup: it writes `~/.claude/RTK.md`
 and appends `@RTK.md` to `~/.claude/CLAUDE.md`, which is the stowed `shared/agents-md/AGENTS.md`, so RTK would edit this
-repo. The plugin is identical either way; `setup_rtk_integration_test.py` guards the instructions file.
+repo.
 
 **Verifying a prose change.** `codex debug prompt-input` renders the model-visible prompt without an API call. It also
 confirms Codex does not expand `@` references in `AGENTS.md`, absolute or relative, which is why the `@RTK.md` line that
