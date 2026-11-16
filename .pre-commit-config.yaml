@@ -2,6 +2,16 @@ default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
 
 repos:
+  # First, so its coaching appears before the raw linter output below.
+  - repo: local
+    hooks:
+      - id: habit-hooks
+        name: habit-hooks (uncommitted work)
+        entry: habit-hooks --since HEAD
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -13,6 +23,10 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
       - id: check-json
+      - id: pretty-format-json
+        args: [--autofix, --indent=2, --no-sort-keys, --no-ensure-ascii]
+        # habit-snooze rewrites its index on every snooze; formatting it would churn.
+        exclude: ^\.habit-hooks/snooze\.json$
       - id: check-toml
       - id: check-yaml
       - id: check-merge-conflict
@@ -28,6 +42,12 @@ repos:
           - mdformat-gfm==1.0.0
         files: \.md$
         exclude: (^|/)templates/.*\.md$
+
+  # shfmt takes its indentation from .editorconfig.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.14.1-1
+    hooks:
+      - id: shfmt
 
   - repo: https://github.com/checkmake/checkmake.git
     rev: v0.3.2
@@ -66,13 +86,6 @@ repos:
         pass_filenames: false
         always_run: true
 
-      - id: habit-hooks
-        name: habit-hooks (uncommitted work)
-        entry: habit-hooks --since HEAD
-        language: system
-        pass_filenames: false
-        always_run: true
-
       - id: gitleaks-staged
         name: gitleaks (staged changes)
         entry: gitleaks git --staged --no-banner
@@ -87,3 +100,9 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push]
+
+  # Last, so it judges what the formatters above left behind.
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.11.1
+    hooks:
+      - id: editorconfig-checker

@@ -5,11 +5,11 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 overrides_file="$script_dir/../superpowers-overrides.md"
 
 start_session_without_overrides() {
-	exit 0
+  exit 0
 }
 
 build_session_start_payload() {
-	python3 -c '
+  python3 -c '
 import json, sys
 
 try:

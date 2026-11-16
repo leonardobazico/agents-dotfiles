@@ -6,53 +6,56 @@ target_dir="${2:?usage: adopt-harness.sh <package_dir> <target_dir>}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 if [ ! -d "$package_dir" ]; then
-	echo "adopt-harness: no such package: $package_dir" >&2
-	exit 1
+  echo "adopt-harness: no such package: $package_dir" >&2
+  exit 1
 fi
 
 resolve() {
-	python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
+  python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
 }
 
 classify() {
-	local live="$1"
-	local owned="$2"
+  local live="$1"
+  local owned="$2"
 
-	if [ ! -L "$live" ] && [ ! -e "$live" ]; then
-		echo skip
-		return
-	fi
+  if [ ! -L "$live" ] && [ ! -e "$live" ]; then
+    echo skip
+    return
+  fi
 
-	if [ -L "$live" ]; then
-		local resolved
-		resolved="$(resolve "$live")"
-		if [ "$resolved" = "$owned" ]; then
-			echo skip
-		else
-			echo "refuse $live is a symlink to $resolved, not to $owned"
-		fi
-		return
-	fi
+  if [ -L "$live" ]; then
+    local resolved
+    resolved="$(resolve "$live")"
+    if [ "$resolved" = "$owned" ]; then
+      echo skip
+    else
+      echo "refuse $live is a symlink to $resolved, not to $owned"
+    fi
+    return
+  fi
 
-	if [ -e "$live.bak" ] || [ -L "$live.bak" ]; then
-		echo "refuse $live is a real file and $live.bak already exists"
-		return
-	fi
+  if [ -e "$live.bak" ] || [ -L "$live.bak" ]; then
+    echo "refuse $live is a real file and $live.bak already exists"
+    return
+  fi
 
-	echo adopt
+  echo adopt
 }
 
 adoptable=()
 while IFS= read -r rel; do
-	verdict="$(classify "$target_dir/$rel" "$(resolve "$package_dir/$rel")")"
-	case "$verdict" in
-		skip) ;;
-		adopt) adoptable+=("$target_dir/$rel") ;;
-		refuse\ *) echo "adopt-harness: ${verdict#refuse }" >&2; exit 1 ;;
-	esac
+  verdict="$(classify "$target_dir/$rel" "$(resolve "$package_dir/$rel")")"
+  case "$verdict" in
+  skip) ;;
+  adopt) adoptable+=("$target_dir/$rel") ;;
+  refuse\ *)
+    echo "adopt-harness: ${verdict#refuse }" >&2
+    exit 1
+    ;;
+  esac
 done < <(bash "$script_dir/list-harness-files.sh" "$package_dir")
 
 for live in ${adoptable+"${adoptable[@]}"}; do
-	mv "$live" "$live.bak"
-	echo "adopt-harness: backed up $live -> $live.bak"
+  mv "$live" "$live.bak"
+  echo "adopt-harness: backed up $live -> $live.bak"
 done

@@ -1,7 +1,16 @@
 {
-  "path": ["."],
-  "format": ["python", "bash"],
-  "ignore": ["**/.git/**", "**/.ruff_cache/**", "**/node_modules/**"],
+  "path": [
+    "."
+  ],
+  "format": [
+    "python",
+    "bash"
+  ],
+  "ignore": [
+    "**/.git/**",
+    "**/.ruff_cache/**",
+    "**/node_modules/**"
+  ],
   "gitignore": true,
   "threshold": 0,
   "minLines": 5,

@@ -6,13 +6,13 @@ repo_root="$(cd "$script_dir/.." && pwd -P)"
 
 status=0
 for t in "$script_dir"/tests/*_test.sh "$repo_root"/tools/*/tests/*_test.sh; do
-	[ -e "$t" ] || continue
-	echo "== $(basename "$t")"
-	bash "$t" || status=1
+  [ -e "$t" ] || continue
+  echo "== $(basename "$t")"
+  bash "$t" || status=1
 done
 for t in "$script_dir"/tests/*_test.py "$repo_root"/tools/*/tests/*_test.py; do
-	[ -e "$t" ] || continue
-	echo "== $(basename "$t")"
-	python3 "$t" || status=1
+  [ -e "$t" ] || continue
+  echo "== $(basename "$t")"
+  python3 "$t" || status=1
 done
 exit $status

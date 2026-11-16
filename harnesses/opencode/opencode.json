@@ -4,10 +4,30 @@
     "superpowers@git+https://github.com/obra/superpowers.git#v7.0.2"
   ],
   "permissions": [
-    { "action": "skill", "resource": "*", "effect": "ask" },
-    { "action": "shell", "resource": "git commit *", "effect": "ask" },
-    { "action": "shell", "resource": "git push *", "effect": "deny" },
-    { "action": "shell", "resource": "aws *", "effect": "deny" },
-    { "action": "external_directory", "resource": "*", "effect": "ask" }
+    {
+      "action": "skill",
+      "resource": "*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git commit *",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "aws *",
+      "effect": "deny"
+    },
+    {
+      "action": "external_directory",
+      "resource": "*",
+      "effect": "ask"
+    }
   ]
 }

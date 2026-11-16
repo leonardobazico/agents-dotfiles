@@ -2,8 +2,8 @@
 set -euo pipefail
 
 usage() {
-	echo "usage: $(basename "$0") <claude|codex|opencode> <plugin> <source>" >&2
-	exit 2
+  echo "usage: $(basename "$0") <claude|codex|opencode> <plugin> <source>" >&2
+  exit 2
 }
 
 [ "$#" -eq 3 ] || usage
@@ -14,118 +14,118 @@ source_ref="$3"
 case "$harness" in
 claude | codex | opencode) ;;
 *)
-	echo "install-plugin.sh: unsupported harness '$harness'" >&2
-	exit 1
-	;;
+  echo "install-plugin.sh: unsupported harness '$harness'" >&2
+  exit 1
+  ;;
 esac
 
 repo="${source_ref%@*}"
 if ! [[ "$repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
-	echo "install-plugin.sh: source '$source_ref' is not an owner/repo reference" >&2
-	exit 1
+  echo "install-plugin.sh: source '$source_ref' is not an owner/repo reference" >&2
+  exit 1
 fi
 
 # OpenCode exposes no plugin CLI, and upstream's package has no entry point a
 # config-level plugin spec could import, so this harness installs by copying the
 # skill and command out of a pinned checkout.
 if [ "$harness" = opencode ]; then
-	script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-	config_root="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
-	cache_root="${PLUGIN_CACHE_DIR:-$script_dir/../.cache/plugins}"
-	checkout="$cache_root/${repo##*/}"
-	ref="HEAD"
-	case "$source_ref" in *@*) ref="${source_ref##*@}" ;; esac
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+  config_root="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+  cache_root="${PLUGIN_CACHE_DIR:-$script_dir/../.cache/plugins}"
+  checkout="$cache_root/${repo##*/}"
+  ref="HEAD"
+  case "$source_ref" in *@*) ref="${source_ref##*@}" ;; esac
 
-	if ! command -v git > /dev/null 2>&1; then
-		echo "install-plugin.sh: git is not on PATH; run 'make install-dependencies' first" >&2
-		exit 1
-	fi
+  if ! command -v git >/dev/null 2>&1; then
+    echo "install-plugin.sh: git is not on PATH; run 'make install-dependencies' first" >&2
+    exit 1
+  fi
 
-	stage() {
-		local name="$1"
-		shift
-		if ! "$@"; then
-			echo "install-plugin.sh: opencode $name step failed: $*" >&2
-			exit 1
-		fi
-	}
+  stage() {
+    local name="$1"
+    shift
+    if ! "$@"; then
+      echo "install-plugin.sh: opencode $name step failed: $*" >&2
+      exit 1
+    fi
+  }
 
-	if [ -d "$checkout/.git" ]; then
-		stage fetch git -C "$checkout" fetch --quiet --tags origin
-	else
-		mkdir -p "$cache_root"
-		stage clone git clone --quiet "https://github.com/$repo" "$checkout"
-	fi
-	stage checkout git -C "$checkout" checkout --quiet --force "$ref"
+  if [ -d "$checkout/.git" ]; then
+    stage fetch git -C "$checkout" fetch --quiet --tags origin
+  else
+    mkdir -p "$cache_root"
+    stage clone git clone --quiet "https://github.com/$repo" "$checkout"
+  fi
+  stage checkout git -C "$checkout" checkout --quiet --force "$ref"
 
-	# Copy to a sibling path then rename, so an interrupted run never leaves a
-	# half-written skill where OpenCode would read it.
-	install_file() {
-		local src="$1" dest="$2"
-		if [ ! -f "$src" ]; then
-			echo "install-plugin.sh: opencode copy step failed: $src is absent from the checkout" >&2
-			exit 1
-		fi
-		mkdir -p "$(dirname "$dest")"
-		stage copy cp "$src" "$dest.tmp"
-		stage copy mv "$dest.tmp" "$dest"
-		stage copy cmp -s "$src" "$dest"
-	}
+  # Copy to a sibling path then rename, so an interrupted run never leaves a
+  # half-written skill where OpenCode would read it.
+  install_file() {
+    local src="$1" dest="$2"
+    if [ ! -f "$src" ]; then
+      echo "install-plugin.sh: opencode copy step failed: $src is absent from the checkout" >&2
+      exit 1
+    fi
+    mkdir -p "$(dirname "$dest")"
+    stage copy cp "$src" "$dest.tmp"
+    stage copy mv "$dest.tmp" "$dest"
+    stage copy cmp -s "$src" "$dest"
+  }
 
-	install_file "$checkout/skills/$plugin/SKILL.md" "$config_root/skills/$plugin/SKILL.md"
-	install_file "$checkout/.opencode/command/$plugin.md" "$config_root/commands/$plugin.md"
-	exit 0
+  install_file "$checkout/skills/$plugin/SKILL.md" "$config_root/skills/$plugin/SKILL.md"
+  install_file "$checkout/.opencode/command/$plugin.md" "$config_root/commands/$plugin.md"
+  exit 0
 fi
 
-if ! command -v "$harness" > /dev/null 2>&1; then
-	echo "install-plugin.sh: $harness is not on PATH; run 'make install-dependencies' first" >&2
-	exit 1
+if ! command -v "$harness" >/dev/null 2>&1; then
+  echo "install-plugin.sh: $harness is not on PATH; run 'make install-dependencies' first" >&2
+  exit 1
 fi
 
 marketplace="${repo##*/}"
 selector="$plugin@$marketplace"
 
 marketplace_present() {
-	case "$harness" in
-	claude) claude plugin marketplace list 2> /dev/null | grep -qF "($repo)" ;;
-	codex) codex plugin marketplace list 2> /dev/null |
-		awk -v m="$marketplace" 'NR > 1 && $1 == m { found = 1 } END { exit !found }' ;;
-	esac
+  case "$harness" in
+  claude) claude plugin marketplace list 2>/dev/null | grep -qF "($repo)" ;;
+  codex) codex plugin marketplace list 2>/dev/null |
+    awk -v m="$marketplace" 'NR > 1 && $1 == m { found = 1 } END { exit !found }' ;;
+  esac
 }
 
 plugin_present() {
-	case "$harness" in
-	claude) claude plugin list 2> /dev/null |
-		awk -v s="$selector" '$2 == s { found = 1 } END { exit !found }' ;;
-	codex) codex plugin list 2> /dev/null |
-		awk -v s="$selector" '$1 == s && $0 !~ /not installed/ { found = 1 } END { exit !found }' ;;
-	esac
+  case "$harness" in
+  claude) claude plugin list 2>/dev/null |
+    awk -v s="$selector" '$2 == s { found = 1 } END { exit !found }' ;;
+  codex) codex plugin list 2>/dev/null |
+    awk -v s="$selector" '$1 == s && $0 !~ /not installed/ { found = 1 } END { exit !found }' ;;
+  esac
 }
 
 # Neither CLI documents its exit code for an already-added marketplace or an
 # already-installed plugin, so a reported failure is accepted only when the
 # harness's own listing shows the state the step was meant to create.
 ensure() {
-	local state="$1"
-	shift
-	if "$@"; then
-		return 0
-	fi
-	if "${state}_present"; then
-		echo "install-plugin.sh: $harness $state already present, continuing" >&2
-		return 0
-	fi
-	echo "install-plugin.sh: $harness $state step failed: $*" >&2
-	return 1
+  local state="$1"
+  shift
+  if "$@"; then
+    return 0
+  fi
+  if "${state}_present"; then
+    echo "install-plugin.sh: $harness $state already present, continuing" >&2
+    return 0
+  fi
+  echo "install-plugin.sh: $harness $state step failed: $*" >&2
+  return 1
 }
 
 case "$harness" in
 claude)
-	ensure marketplace claude plugin marketplace add "$source_ref" --scope user
-	ensure plugin claude plugin install "$selector" --scope user --yes
-	;;
+  ensure marketplace claude plugin marketplace add "$source_ref" --scope user
+  ensure plugin claude plugin install "$selector" --scope user --yes
+  ;;
 codex)
-	ensure marketplace codex plugin marketplace add "$source_ref"
-	ensure plugin codex plugin add "$selector"
-	;;
+  ensure marketplace codex plugin marketplace add "$source_ref"
+  ensure plugin codex plugin add "$selector"
+  ;;
 esac

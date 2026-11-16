@@ -4,9 +4,9 @@ set -euo pipefail
 formulae=(opencode stow gitleaks pre-commit ruff jscpd)
 casks=(claude-code codex)
 
-if ! command -v brew > /dev/null 2>&1; then
-	echo "install-dependencies.sh: Homebrew is required; see https://brew.sh" >&2
-	exit 1
+if ! command -v brew >/dev/null 2>&1; then
+  echo "install-dependencies.sh: Homebrew is required; see https://brew.sh" >&2
+  exit 1
 fi
 
 # brew install exits 0 for an already-installed formula or cask, so the lists
@@ -17,5 +17,5 @@ brew install --cask "${casks[@]}"
 # and deptry, its Python plugin's dependency checker, has no formula.
 uv_tools=("habit-hooks[python]" deptry)
 for tool in "${uv_tools[@]}"; do
-	uv tool install "$tool"
+  uv tool install "$tool"
 done

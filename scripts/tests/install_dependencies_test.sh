@@ -8,30 +8,33 @@ trap 'rm -rf "$test_root"' EXIT
 failures=0
 
 pass() { echo "ok: $1"; }
-fail() { echo "FAIL: $1" >&2; failures=$((failures + 1)); }
+fail() {
+  echo "FAIL: $1" >&2
+  failures=$((failures + 1))
+}
 
 # A stub brew records every invocation so the package lists can be asserted
 # without installing anything.
 make_brew_stub() {
-	local dir="$1" exit_code="$2"
-	mkdir -p "$dir"
-	cat > "$dir/brew" <<SH
+  local dir="$1" exit_code="$2"
+  mkdir -p "$dir"
+  cat >"$dir/brew" <<SH
 #!/bin/sh
 printf '%s\n' "\$*" >> "\$BREW_LOG"
 exit $exit_code
 SH
-	chmod +x "$dir/brew"
+  chmod +x "$dir/brew"
 }
 
 make_uv_stub() {
-	local dir="$1" exit_code="$2"
-	mkdir -p "$dir"
-	cat > "$dir/uv" <<SH
+  local dir="$1" exit_code="$2"
+  mkdir -p "$dir"
+  cat >"$dir/uv" <<SH
 #!/bin/sh
 printf '%s\n' "\$*" >> "\$UV_LOG"
 exit $exit_code
 SH
-	chmod +x "$dir/uv"
+  chmod +x "$dir/uv"
 }
 
 bin="$test_root/bin"
@@ -40,76 +43,76 @@ make_uv_stub "$bin" 0
 uv_log="$test_root/uv.log"
 log="$test_root/brew.log"
 
-if BREW_LOG="$log" UV_LOG="$uv_log" PATH="$bin:$PATH" "$script" > "$test_root/out" 2>&1; then
-	pass "install-dependencies.sh exits 0 when brew succeeds"
+if BREW_LOG="$log" UV_LOG="$uv_log" PATH="$bin:$PATH" "$script" >"$test_root/out" 2>&1; then
+  pass "install-dependencies.sh exits 0 when brew succeeds"
 else
-	fail "install-dependencies.sh exits 0 when brew succeeds"
-	cat "$test_root/out"
+  fail "install-dependencies.sh exits 0 when brew succeeds"
+  cat "$test_root/out"
 fi
 
 for formula in opencode stow gitleaks pre-commit ruff jscpd; do
-	if grep -q "^install .*\\b$formula\\b" "$log" && ! grep -q "^install --cask .*\\b$formula\\b" "$log"; then
-		pass "$formula is installed as a formula"
-	else
-		fail "$formula is installed as a formula"
-	fi
+  if grep -q "^install .*\\b$formula\\b" "$log" && ! grep -q "^install --cask .*\\b$formula\\b" "$log"; then
+    pass "$formula is installed as a formula"
+  else
+    fail "$formula is installed as a formula"
+  fi
 done
 
 for cask in claude-code codex; do
-	if grep -q "^install --cask .*\\b$cask\\b" "$log"; then
-		pass "$cask is installed as a cask"
-	else
-		fail "$cask is installed as a cask"
-	fi
+  if grep -q "^install --cask .*\\b$cask\\b" "$log"; then
+    pass "$cask is installed as a cask"
+  else
+    fail "$cask is installed as a cask"
+  fi
 done
 
 if [ "$(grep -c '^install' "$log")" -eq 2 ]; then
-	pass "brew is invoked once per kind"
+  pass "brew is invoked once per kind"
 else
-	fail "brew is invoked once per kind (got $(grep -c '^install' "$log"))"
+  fail "brew is invoked once per kind (got $(grep -c '^install' "$log"))"
 fi
 
 for package in "habit-hooks[python]" deptry; do
-	if grep -qxF "tool install $package" "$uv_log"; then
-		pass "$package is installed from PyPI"
-	else
-		fail "$package is installed from PyPI (got: $(cat "$uv_log"))"
-	fi
+  if grep -qxF "tool install $package" "$uv_log"; then
+    pass "$package is installed from PyPI"
+  else
+    fail "$package is installed from PyPI (got: $(cat "$uv_log"))"
+  fi
 done
 
 failing_uv_bin="$test_root/failing-uv-bin"
 make_brew_stub "$failing_uv_bin" 0
 make_uv_stub "$failing_uv_bin" 1
 if BREW_LOG="$test_root/failing-uv-brew.log" UV_LOG="$test_root/failing-uv.log" PATH="$failing_uv_bin:$PATH" "$script" >/dev/null 2>&1; then
-	fail "a uv failure propagates"
+  fail "a uv failure propagates"
 else
-	pass "a uv failure propagates"
+  pass "a uv failure propagates"
 fi
 
 # A real brew failure must not be swallowed.
 failing_bin="$test_root/failing-bin"
 make_brew_stub "$failing_bin" 1
 if BREW_LOG="$test_root/failing.log" PATH="$failing_bin:$PATH" "$script" >/dev/null 2>&1; then
-	fail "a brew failure propagates"
+  fail "a brew failure propagates"
 else
-	pass "a brew failure propagates"
+  pass "a brew failure propagates"
 fi
 
 # Homebrew absent must name Homebrew, not exit 127 from a bare command.
 empty_bin="$test_root/empty-bin"
 mkdir -p "$empty_bin"
 for tool in env bash sh grep; do
-	ln -sf "$(command -v "$tool")" "$empty_bin/$tool" 2>/dev/null || true
+  ln -sf "$(command -v "$tool")" "$empty_bin/$tool" 2>/dev/null || true
 done
 out="$(PATH="$empty_bin" "$script" 2>&1)"
 if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -qi 'homebrew'; then
-	pass "a missing brew fails naming Homebrew"
+  pass "a missing brew fails naming Homebrew"
 else
-	fail "a missing brew fails naming Homebrew (got: $out)"
+  fail "a missing brew fails naming Homebrew (got: $out)"
 fi
 
 if [ "$failures" -ne 0 ]; then
-	echo "$failures failure(s)"
-	exit 1
+  echo "$failures failure(s)"
+  exit 1
 fi
 echo "all install-dependencies cases passed"
