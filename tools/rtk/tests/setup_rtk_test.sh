@@ -9,6 +9,8 @@ REAL_RTK = shutil.which('rtk')
 STAMP = '20260930T120000Z'
 FAKE = '''#!/usr/bin/env python3
 import os, pathlib, signal, sys
+with open(os.environ['EVENT_LOG'], 'a') as log:
+    log.write('rtk ' + ' '.join(sys.argv[1:]) + '\\n')
 root = pathlib.Path(os.environ['HOME'])
 settings = root / '.claude/settings.json'
 backup = pathlib.Path(str(settings) + '.bak')
@@ -32,6 +34,31 @@ if mode == 'wait':
     (root / 'ready').write_text(str(os.getpid()))
     signal.pause()
 '''
+FAKE_BREW = '''#!/usr/bin/env python3
+import os, pathlib, shutil, sys
+
+args = sys.argv[1:]
+with open(os.environ['EVENT_LOG'], 'a') as log:
+    log.write('brew ' + ' '.join(args) + '\\n')
+
+formula = 'rtk'
+if args == ['list', '--versions', formula]:
+    if os.environ.get('BREW_INSTALLED') == '1':
+        print('rtk 1.2.0')
+        sys.exit(0)
+    sys.exit(1)
+if args == ['upgrade', formula]:
+    sys.exit(int(os.environ.get('BREW_UPGRADE_EXIT', '0')))
+if args == ['install', formula]:
+    status = int(os.environ.get('BREW_INSTALL_EXIT', '0'))
+    if status:
+        sys.exit(status)
+    target = pathlib.Path(os.environ['RTK_BIN'])
+    shutil.copyfile(os.environ['RTK_FIXTURE'], target)
+    target.chmod(0o755)
+    sys.exit(0)
+sys.exit(2)
+'''
 
 class SetupTests(unittest.TestCase):
     def setUp(self):
@@ -48,9 +75,24 @@ class SetupTests(unittest.TestCase):
         self.snapshot = claude / f'settings.json.bak.{STAMP}.rtk'
         self.bin = self.root / 'bin'
         self.bin.mkdir()
+        self.event_log = self.root / 'events.log'
+        self.rtk_fixture = self.root / 'rtk-fixture'
+        self.rtk_fixture.write_text(FAKE)
+        self.rtk_fixture.chmod(0o755)
         self.executable('rtk', FAKE)
+        self.executable('brew', FAKE_BREW)
         self.executable('date', '#!/bin/sh\nprintf "%s\\n" ' + STAMP + '\n')
-        self.env = {**os.environ, 'HOME': str(self.root), 'PATH': str(self.bin) + ':' + os.environ['PATH']}
+        for tool in ('bash', 'python3'):
+            (self.bin / tool).symlink_to(shutil.which(tool))
+        self.env = {
+            **os.environ,
+            'HOME': str(self.root),
+            'PATH': str(self.bin) + ':' + os.environ['PATH'],
+            'EVENT_LOG': str(self.event_log),
+            'BREW_INSTALLED': '1',
+            'RTK_FIXTURE': str(self.rtk_fixture),
+            'RTK_BIN': str(self.bin / 'rtk'),
+        }
 
     def executable(self, name, text):
         path = self.bin / name
@@ -68,6 +110,62 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(self.original, self.snapshot.read_bytes())
         self.assertFalse(self.backup.exists())
         for path in [self.pre, self.snapshot]: self.assertIn(str(path), result.stdout + result.stderr)
+
+    def test_homebrew_rtk_is_upgraded_before_install_initialization(self):
+        result = self.run_setup()
+        self.assertEqual(0, result.returncode, result.stderr)
+        events = self.event_log.read_text().splitlines()
+        self.assertIn('brew upgrade rtk', events)
+        self.assertLess(events.index('brew upgrade rtk'), events.index('rtk init --global --hook-only --auto-patch --agent claude'))
+
+    def test_uninstall_does_not_upgrade_rtk(self):
+        result = self.run_setup('--uninstall')
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertNotIn('brew upgrade rtk', self.event_log.read_text().splitlines())
+
+    def test_missing_rtk_installs_supported_formula_before_init(self):
+        (self.bin / 'rtk').unlink()
+        self.env['BREW_INSTALLED'] = '0'
+        self.env['PATH'] = str(self.bin)
+        result = self.run_setup()
+        self.assertEqual(0, result.returncode, result.stderr)
+        events = self.event_log.read_text().splitlines()
+        self.assertIn('brew install rtk', events)
+        self.assertTrue((self.root / '.config/opencode/plugins/rtk.ts').exists())
+
+    def test_non_homebrew_rtk_is_not_migrated_or_version_checked(self):
+        self.env['BREW_INSTALLED'] = '0'
+        result = self.run_setup()
+        self.assertEqual(0, result.returncode, result.stderr)
+        events = self.event_log.read_text().splitlines()
+        self.assertFalse(any(event.startswith('brew upgrade ') for event in events))
+        self.assertFalse(any(event.startswith('brew install ') for event in events))
+        self.assertTrue((self.root / '.config/opencode/plugins/rtk.ts').exists())
+
+    def test_brew_upgrade_failure_stops_before_init_or_settings_mutation(self):
+        self.backup.write_bytes(b'ORIGINAL')
+        self.env['BREW_UPGRADE_EXIT'] = '19'
+        result = self.run_setup()
+        self.assertEqual(1, result.returncode)
+        self.assertIn('failed to upgrade', result.stderr)
+        self.assertEqual(self.original, self.settings.read_bytes())
+        self.assertEqual(b'ORIGINAL', self.backup.read_bytes())
+        events = self.event_log.read_text().splitlines()
+        self.assertIn('brew upgrade rtk', events)
+        self.assertFalse(any(event.startswith('rtk ') for event in events))
+
+    def test_brew_install_failure_stops_before_init_or_settings_mutation(self):
+        (self.bin / 'rtk').unlink()
+        self.env['BREW_INSTALLED'] = '0'
+        self.env['BREW_INSTALL_EXIT'] = '18'
+        self.env['PATH'] = str(self.bin)
+        result = self.run_setup()
+        self.assertEqual(1, result.returncode)
+        self.assertIn('failed to install', result.stderr)
+        self.assertEqual(self.original, self.settings.read_bytes())
+        events = self.event_log.read_text().splitlines()
+        self.assertIn('brew install rtk', events)
+        self.assertFalse(any(event.startswith('rtk ') for event in events))
 
     def test_install_and_uninstall_preserve_both_backups(self):
         for args in [(), ('--uninstall',)]:

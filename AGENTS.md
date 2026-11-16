@@ -55,7 +55,9 @@ target.
 `brew install` exits 0 for an already-installed package, so the target is re-runnable. Like `setup-rtk`, it stays out of
 `link-all`: installing software is deliberate.
 
-`rtk` is not distributed through Homebrew and keeps its own `setup-rtk` target.
+`make setup-rtk` installs missing RTK from the Homebrew Core `rtk` formula and upgrades it when Homebrew manages the
+existing binary, then initializes its integrations. Other RTK installations remain user-managed. The target stays out of
+`link-all` because installing or upgrading software is deliberate.
 
 ## Repo Workflow
 

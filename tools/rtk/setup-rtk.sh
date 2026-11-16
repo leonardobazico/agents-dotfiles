@@ -10,16 +10,29 @@ case "$mode" in
 		;;
 esac
 
-if ! command -v rtk >/dev/null 2>&1; then
-	if [ "$mode" = "--uninstall" ]; then
-		echo "setup-rtk: reinstall rtk before uninstalling its integrations" >&2
-		exit 1
-	fi
-	if ! command -v brew >/dev/null 2>&1; then
-		echo "setup-rtk: rtk is not installed and homebrew is not available to install it" >&2
-		exit 1
-	fi
-	brew install rtk
+rtk_formula="rtk"
+
+if [ "$mode" = "--uninstall" ]; then
+    if ! command -v rtk >/dev/null 2>&1; then
+        echo "setup-rtk: reinstall rtk before uninstalling its integrations" >&2
+        exit 1
+    fi
+else
+    if ! command -v rtk >/dev/null 2>&1; then
+        if ! command -v brew >/dev/null 2>&1; then
+            echo "setup-rtk: rtk is not installed and homebrew is not available to install it" >&2
+            exit 1
+        fi
+        if ! brew install "$rtk_formula"; then
+            echo "setup-rtk: failed to install $rtk_formula" >&2
+            exit 1
+        fi
+    elif command -v brew >/dev/null 2>&1 && brew list --versions "$rtk_formula" >/dev/null 2>&1; then
+        if ! brew upgrade "$rtk_formula"; then
+            echo "setup-rtk: failed to upgrade $rtk_formula" >&2
+            exit 1
+        fi
+    fi
 fi
 
 settings="$HOME/.claude/settings.json"
