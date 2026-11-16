@@ -104,8 +104,7 @@ mkdir -p "$empty_bin"
 for tool in env bash sh grep; do
   ln -sf "$(command -v "$tool")" "$empty_bin/$tool" 2>/dev/null || true
 done
-out="$(PATH="$empty_bin" "$script" 2>&1)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -qi 'homebrew'; then
+if ! out="$(PATH="$empty_bin" "$script" 2>&1)" && printf '%s' "$out" | grep -qi 'homebrew'; then
   pass "a missing brew fails naming Homebrew"
 else
   fail "a missing brew fails naming Homebrew (got: $out)"

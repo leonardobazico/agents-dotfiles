@@ -49,6 +49,11 @@ repos:
     hooks:
       - id: shfmt
 
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
   - repo: https://github.com/checkmake/checkmake.git
     rev: v0.3.2
     hooks:

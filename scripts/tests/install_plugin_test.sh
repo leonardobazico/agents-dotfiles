@@ -61,8 +61,7 @@ else
 fi
 
 new_case
-out="$(PATH="$bin:$PATH" "$script" gemini i-have-adhd ayghri/i-have-adhd 2>&1)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q gemini && [ ! -s "$log" ]; then
+if ! out="$(PATH="$bin:$PATH" "$script" gemini i-have-adhd ayghri/i-have-adhd 2>&1)" && printf '%s' "$out" | grep -q gemini && [ ! -s "$log" ]; then
   pass "an unsupported harness fails naming it and runs no command"
 else
   fail "an unsupported harness fails naming it and runs no command (got: $out)"
@@ -70,8 +69,7 @@ fi
 
 for bad_source in not-a-repo owner/ a/b/c https://github.com/owner/repo.git /etc/passwd; do
   new_case
-  out="$(PATH="$bin:$PATH" "$script" claude someplug "$bad_source" 2>&1)"
-  if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -qF "$bad_source" && [ ! -s "$log" ]; then
+  if ! out="$(PATH="$bin:$PATH" "$script" claude someplug "$bad_source" 2>&1)" && printf '%s' "$out" | grep -qF "$bad_source" && [ ! -s "$log" ]; then
     pass "source '$bad_source' fails naming the source"
   else
     fail "source '$bad_source' fails naming the source (got: $out)"
@@ -84,8 +82,7 @@ mkdir -p "$empty_bin"
 for tool in env bash sh grep awk; do
   ln -sf "$(command -v "$tool")" "$empty_bin/$tool" 2>/dev/null || true
 done
-out="$(PATH="$empty_bin" "$script" codex i-have-adhd ayghri/i-have-adhd@main 2>&1)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q codex &&
+if ! out="$(PATH="$empty_bin" "$script" codex i-have-adhd ayghri/i-have-adhd@main 2>&1)" && printf '%s' "$out" | grep -q codex &&
   printf '%s' "$out" | grep -q 'install-dependencies'; then
   pass "a missing harness CLI fails naming the harness and the setup target"
 else

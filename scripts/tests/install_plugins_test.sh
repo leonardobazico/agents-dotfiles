@@ -35,12 +35,13 @@ SH
 run_script() { PLUGIN_MANIFEST="$manifest" PLUGIN_INSTALLER="$installer" "$script" 2>&1; }
 
 new_case
-printf '# plugin\tharness\tsource\tinstall\n' >"$manifest"
-printf 'i-have-adhd\tclaude\tayghri/i-have-adhd\tauto\n' >>"$manifest"
-printf '\n' >>"$manifest"
-printf 'i-have-adhd\tcodex\tayghri/i-have-adhd@main\tauto\n' >>"$manifest"
-out="$(run_script)"
-if [ "$?" -eq 0 ] &&
+{
+  printf '# plugin\tharness\tsource\tinstall\n'
+  printf 'i-have-adhd\tclaude\tayghri/i-have-adhd\tauto\n'
+  printf '\n'
+  printf 'i-have-adhd\tcodex\tayghri/i-have-adhd@main\tauto\n'
+} >"$manifest"
+if out="$(run_script)" &&
   grep -qx 'claude i-have-adhd ayghri/i-have-adhd' "$log" &&
   grep -qx 'codex i-have-adhd ayghri/i-have-adhd@main' "$log" &&
   [ "$(wc -l <"$log")" -eq 2 ]; then
@@ -52,8 +53,7 @@ fi
 new_case
 printf 'superpowers\tclaude\tclaude-plugins-official\tmanual\n' >"$manifest"
 printf 'i-have-adhd\topencode\t-\tskip\n' >>"$manifest"
-out="$(run_script)"
-if [ "$?" -eq 0 ] && [ ! -s "$log" ]; then
+if out="$(run_script)" && [ ! -s "$log" ]; then
   pass "manual and skip rows are recorded without being installed"
 else
   fail "manual and skip rows are recorded without being installed (got: $out)"
@@ -61,8 +61,7 @@ fi
 
 new_case
 printf 'i-have-adhd\tclaude\tauto\n' >"$manifest"
-out="$(run_script)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q 'manifest.tsv:1' &&
+if ! out="$(run_script)" && printf '%s' "$out" | grep -q 'manifest.tsv:1' &&
   printf '%s' "$out" | grep -q '4 tab-separated columns' && [ ! -s "$log" ]; then
   pass "a three-column row fails naming the file and line"
 else
@@ -71,8 +70,7 @@ fi
 
 new_case
 printf 'i-have-adhd claude ayghri/i-have-adhd auto\n' >"$manifest"
-out="$(run_script)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q 'manifest.tsv:1' && [ ! -s "$log" ]; then
+if ! out="$(run_script)" && printf '%s' "$out" | grep -q 'manifest.tsv:1' && [ ! -s "$log" ]; then
   pass "a space-separated row fails instead of installing nothing quietly"
 else
   fail "a space-separated row fails instead of installing nothing quietly (got: $out)"
@@ -80,8 +78,7 @@ fi
 
 new_case
 printf 'i-have-adhd\tclaude\tayghri/i-have-adhd\tatuo\n' >"$manifest"
-out="$(run_script)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q 'atuo' && [ ! -s "$log" ]; then
+if ! out="$(run_script)" && printf '%s' "$out" | grep -q 'atuo' && [ ! -s "$log" ]; then
   pass "an unknown install value fails naming the value"
 else
   fail "an unknown install value fails naming the value (got: $out)"
@@ -101,8 +98,7 @@ else
 fi
 
 new_case
-out="$(PLUGIN_MANIFEST="$work/absent.tsv" PLUGIN_INSTALLER="$installer" "$script" 2>&1)"
-if [ "$?" -ne 0 ] && printf '%s' "$out" | grep -q 'absent.tsv'; then
+if ! out="$(PLUGIN_MANIFEST="$work/absent.tsv" PLUGIN_INSTALLER="$installer" "$script" 2>&1)" && printf '%s' "$out" | grep -q 'absent.tsv'; then
   pass "a missing manifest fails naming the path"
 else
   fail "a missing manifest fails naming the path (got: $out)"

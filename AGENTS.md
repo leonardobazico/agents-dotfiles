@@ -96,14 +96,19 @@ pre-commit run --all-files
 
 Markdown is auto-formatted by the hooks. The Makefile is validated, not auto-formatted, in this initial setup.
 
+`.editorconfig` is the single source of indentation: 2 spaces by default, 4 for Python, tabs for the Makefile. `shfmt`
+reads it and rewrites shell scripts, `pretty-format-json` rewrites JSON to match, and `shellcheck` fails on shell
+findings without fixing them. `editorconfig-checker` runs last over every text file and fails on anything the formatters
+left behind, including heredoc bodies, which `shfmt` never touches.
+
 Two local hooks run the test suites: `shared/skills/count-tokens/scripts/run_tests.sh` (Python) and
 `scripts/run_tests.sh` (shell and Python repository script tests).
 
-A third local hook runs `habit-hooks --since HEAD`, which checks the uncommitted work (staged, unstaged, and untracked)
-for structural smells such as oversized functions and duplication. `.habit-hooks/config.toml` enables the `python` and
-`generic` plugins; `.jscpd.json` points the duplication check at the repo's Python and shell instead of jscpd's default
-`src/`; `.habit-hooks/snooze.json` holds the findings that predate the hook. A missing detector fails the run rather
-than passing it.
+A third local hook, ordered first so its coaching precedes the raw linter output, runs `habit-hooks --since HEAD`, which
+checks the uncommitted work (staged, unstaged, and untracked) for structural smells such as oversized functions and
+duplication. `.habit-hooks/config.toml` enables the `python` and `generic` plugins; `.jscpd.json` points the duplication
+check at the repo's Python and shell instead of jscpd's default `src/`; `.habit-hooks/snooze.json` holds the findings
+that predate the hook. A missing detector fails the run rather than passing it.
 
 Use `pre-commit autoupdate` when intentionally refreshing hook versions. Note that `additional_dependencies` pins (e.g.
 `mdformat-frontmatter`) are not touched by `autoupdate` and need to be bumped manually.

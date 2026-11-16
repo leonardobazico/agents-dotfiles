@@ -61,8 +61,7 @@ fi
 new_case
 printf 'older\n' >"$target/settings.json.bak"
 printf 'live\n' >"$target/settings.json"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] &&
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 &&
   [ "$(cat "$target/settings.json.bak")" = "older" ] &&
   [ "$(cat "$target/settings.json")" = "live" ]; then
   pass "existing backup is preserved"
@@ -73,8 +72,7 @@ fi
 # Case 5: a symlink pointing outside the repo fails loudly.
 new_case
 ln -s /etc/hosts "$target/settings.json"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] && [ ! -e "$target/settings.json.bak" ]; then
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 && [ ! -e "$target/settings.json.bak" ]; then
   pass "foreign symlink fails loudly"
 else
   fail "foreign symlink fails loudly"
@@ -96,8 +94,7 @@ fi
 # Review Focus 2: a dangling symlink fails loudly rather than being moved.
 new_case
 ln -s "$work/missing" "$target/settings.json"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] && [ ! -e "$target/settings.json.bak" ]; then
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 && [ ! -e "$target/settings.json.bak" ]; then
   pass "dangling symlink fails loudly"
 else
   fail "dangling symlink fails loudly"
@@ -117,8 +114,7 @@ fi
 
 # A missing package directory is refused.
 new_case
-"$adopt" "$work/absent" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ]; then
+if ! "$adopt" "$work/absent" "$target" >/dev/null 2>&1; then
   pass "missing package is refused"
 else
   fail "missing package is refused"
@@ -128,8 +124,7 @@ fi
 new_case
 printf 'live\n' >"$target/settings.json"
 ln -s "$work/gone" "$target/settings.json.bak"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] &&
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 &&
   [ -L "$target/settings.json.bak" ] &&
   [ "$(cat "$target/settings.json")" = "live" ]; then
   pass "dangling backup is not overwritten"
@@ -142,8 +137,7 @@ new_case
 printf 'live\n' >"$target/settings.json"
 mkdir -p "$target/hooks"
 ln -s /etc/hosts "$target/hooks/run"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] &&
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 &&
   [ -f "$target/settings.json" ] &&
   [ "$(cat "$target/settings.json")" = "live" ] &&
   [ ! -e "$target/settings.json.bak" ]; then
@@ -169,8 +163,7 @@ fi
 # here rather than becoming a stow conflict one step later.
 new_case
 ln -s "$repo_root/Makefile" "$target/settings.json"
-"$adopt" "$pkg" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ] &&
+if ! "$adopt" "$pkg" "$target" >/dev/null 2>&1 &&
   [ -L "$target/settings.json" ] &&
   [ ! -e "$target/settings.json.bak" ]; then
   pass "a symlink to the wrong repo file is refused"

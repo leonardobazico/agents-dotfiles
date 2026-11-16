@@ -82,8 +82,7 @@ fi
 
 # A missing package directory is refused.
 new_case
-"$restore" "$work/absent" "$target" >/dev/null 2>&1
-if [ $? -ne 0 ]; then
+if ! "$restore" "$work/absent" "$target" >/dev/null 2>&1; then
   pass "missing package is refused"
 else
   fail "missing package is refused"
