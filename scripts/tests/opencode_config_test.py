@@ -3,6 +3,7 @@ import pathlib
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+SUPERPOWERS_SOURCE = "git+https://github.com/obra/superpowers.git#v7.0.2"
 
 
 class OpenCodeConfigTests(unittest.TestCase):
@@ -11,7 +12,7 @@ class OpenCodeConfigTests(unittest.TestCase):
         self.assertEqual(config["$schema"], "https://opencode.ai/config.json")
         self.assertEqual(
             config["plugins"],
-            ["superpowers@git+https://github.com/obra/superpowers.git#v7.0.2"],
+            [f"superpowers@{SUPERPOWERS_SOURCE}"],
         )
         self.assertNotIn("plugin", config)
         self.assertNotIn("permission", config)
@@ -36,12 +37,7 @@ class OpenCodeConfigTests(unittest.TestCase):
             if line and not line.startswith("#")
         }
         self.assertIn(
-            (
-                "superpowers",
-                "opencode",
-                "git+https://github.com/obra/superpowers.git#v7.0.2",
-                "manual",
-            ),
+            ("superpowers", "opencode", SUPERPOWERS_SOURCE, "manual"),
             rows,
         )
         self.assertIn(
