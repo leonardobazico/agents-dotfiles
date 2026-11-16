@@ -61,7 +61,7 @@ inert until you approve it once. Approval is recorded in `~/.codex/config.toml` 
 **`rtk hook codex` is the native processor.** It emits `updatedInput` plus `permissionDecision: "allow"`. It writes
 nothing and exits 0 when the payload omits `permission_mode`, which Codex supplies on turn-scoped events. An earlier
 Python shim reimplemented this by post-processing `rtk hook claude`; rtk 0.50.0 made it redundant.
-`tests/codex_hook_contract_test.sh` fails loudly if that contract changes.
+`tests/codex_hook_contract_test.py` fails loudly if that contract changes.
 
 **Backup archival in `setup-rtk.sh`.** `rtk init` overwrites `~/.claude/settings.json.bak` unconditionally, and that
 path holds the pre-migration original `scripts/restore-harness.sh` hands back on unlink. The script archives it as
