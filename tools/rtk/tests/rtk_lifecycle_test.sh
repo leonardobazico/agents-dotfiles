@@ -36,6 +36,7 @@ printf '%s\n' "$PROBE_STAMP"
 SH
 cat > "$test_root/bin/brew" <<'SH'
 #!/bin/sh
+[ "$*" = "list --versions rtk" ] && exit 1
 printf 'unexpected\n' > "$PROBE_UNEXPECTED"
 exit 99
 SH
@@ -177,8 +178,6 @@ exit 99
 SH
 	chmod +x "$work/refuse-rtk"
 	ln -sf "$work/refuse-rtk" "$test_root/bin/rtk"
-	# Setup and teardown may probe Homebrew; observe only the link-all call below.
-	rm -f "$work/unexpected"
 	if run_make link-all HARNESSES=claude "AGENTS_MD_TARGETS=$work/agents" "SKILLS_TARGETS=$work/skills" \
 		&& [ ! -e "$codex_target/hooks.json" ] && [ ! -e "$work/unexpected" ]; then
 		pass "link-all leaves the rtk tool package unlinked"
